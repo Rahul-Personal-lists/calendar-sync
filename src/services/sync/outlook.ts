@@ -143,4 +143,76 @@ export async function deleteOutlookEvent(
   }
 
   console.log('Successfully deleted Outlook event:', outlookEventId);
+}
+
+export async function updateOutlookEvent(
+  outlookEventId: string,
+  updateData: Partial<UnifiedEvent>,
+  userEmail: string
+): Promise<OutlookEvent> {
+  // Get a valid access token (with refresh if needed)
+  const { getValidAccessToken } = await import('@/lib/token-refresh');
+  
+  const accessToken = await getValidAccessToken(userEmail, 'outlook');
+  
+  if (!accessToken) {
+    throw new Error('No valid Outlook access token found for user');
+  }
+
+  console.log('Updating Outlook event:', outlookEventId, 'with data:', updateData);
+
+  // Convert our event data to Outlook format
+  const outlookEvent = {
+    subject: updateData.title,
+    start: {
+      dateTime: updateData.start_time,
+      timeZone: 'UTC',
+    },
+    end: {
+      dateTime: updateData.end_time,
+      timeZone: 'UTC',
+    },
+    location: updateData.location ? {
+      displayName: updateData.location,
+    } : undefined,
+    body: updateData.description ? {
+      content: updateData.description,
+      contentType: 'text',
+    } : undefined,
+    isAllDay: updateData.is_all_day,
+  };
+
+  const response = await fetch(
+    `https://graph.microsoft.com/v1.0/me/events/${outlookEventId}`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(outlookEvent),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Outlook API update error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText
+    });
+    throw new Error(`Failed to update Outlook event: ${response.statusText} (${response.status}) - ${errorText}`);
+  }
+
+  const updatedEvent = await response.json();
+  console.log('Successfully updated Outlook event:', outlookEventId);
+  return updatedEvent;
+}
+
+export async function updateOutlookEventWithRefresh(
+  outlookEventId: string,
+  updateData: Partial<UnifiedEvent>,
+  userEmail: string
+): Promise<OutlookEvent> {
+  return updateOutlookEvent(outlookEventId, updateData, userEmail);
 } 

@@ -8,22 +8,20 @@ type CalendarViewType = 'day' | 'week' | 'month';
 interface CalendarViewProps {
   events: UnifiedEvent[];
   onEventClick?: (event: UnifiedEvent) => void;
-  onEventDelete?: (eventId: string) => Promise<void>;
+  onEventEdit?: (event: UnifiedEvent) => void;
   userColors?: Record<string, string>;
 }
 
 export default function CalendarView({ 
   events, 
   onEventClick, 
-  onEventDelete,
+  onEventEdit,
   userColors = {} 
 }: CalendarViewProps) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewType, setViewType] = useState<CalendarViewType>('day');
   const [colorKey, setColorKey] = useState(0);
-  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   // Force re-render when userColors change
   useEffect(() => {
@@ -89,19 +87,9 @@ export default function CalendarView({
     return {};
   };
 
-  const handleDeleteEvent = async (eventId: string) => {
-    if (!onEventDelete) return;
-    
-    setDeletingEventId(eventId);
-    setShowDeleteConfirm(null);
-    
-    try {
-      await onEventDelete(eventId);
-    } catch (error) {
-      console.error('Failed to delete event:', error);
-      // You could add a toast notification here
-    } finally {
-      setDeletingEventId(null);
+  const handleEditEvent = (event: UnifiedEvent) => {
+    if (onEventEdit) {
+      onEventEdit(event);
     }
   };
 
@@ -271,38 +259,17 @@ export default function CalendarView({
                       )}
                     </div>
                     
-                    {onEventDelete && (
-                      <div className="ml-2">
-                        {showDeleteConfirm === event.id ? (
-                          <div className="flex items-center space-x-2">
-                            <button
-                              onClick={() => handleDeleteEvent(event.id)}
-                              disabled={deletingEventId === event.id}
-                              className="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white disabled:opacity-50"
-                            >
-                              {deletingEventId === event.id ? 'Deleting...' : 'Confirm'}
-                            </button>
-                            <button
-                              onClick={() => setShowDeleteConfirm(null)}
-                              className="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded text-white"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowDeleteConfirm(event.id);
-                            }}
-                            disabled={deletingEventId === event.id}
-                            className="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                            title="Delete event"
-                          >
-                            {deletingEventId === event.id ? '⋯' : '🗑️'}
-                          </button>
-                        )}
-                      </div>
+                    {onEventEdit && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditEvent(event);
+                        }}
+                        className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Edit event"
+                      >
+                        ✏️
+                      </button>
                     )}
                   </div>
                 </div>
@@ -539,38 +506,17 @@ export default function CalendarView({
                     )}
                   </div>
                   
-                  {onEventDelete && (
-                    <div className="ml-2">
-                      {showDeleteConfirm === event.id ? (
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => handleDeleteEvent(event.id)}
-                            disabled={deletingEventId === event.id}
-                            className="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white disabled:opacity-50"
-                          >
-                            {deletingEventId === event.id ? 'Deleting...' : 'Confirm'}
-                          </button>
-                          <button
-                            onClick={() => setShowDeleteConfirm(null)}
-                            className="text-xs bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded text-white"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowDeleteConfirm(event.id);
-                          }}
-                          disabled={deletingEventId === event.id}
-                          className="text-xs bg-red-600 hover:bg-red-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
-                          title="Delete event"
-                        >
-                          {deletingEventId === event.id ? '⋯' : '🗑️'}
-                        </button>
-                      )}
-                    </div>
+                  {onEventEdit && (
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEditEvent(event);
+                      }}
+                      className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                      title="Edit event"
+                    >
+                      ✏️
+                    </button>
                   )}
                 </div>
               </div>

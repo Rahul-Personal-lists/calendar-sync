@@ -207,4 +207,64 @@ export async function deleteGoogleEvent(
   }
 
   console.log('Successfully deleted Google event:', googleEventId);
+}
+
+export async function updateGoogleEvent(
+  googleEventId: string,
+  updateData: Partial<UnifiedEvent>,
+  userEmail: string
+): Promise<GoogleCalendarEvent> {
+  // Get a valid access token (with refresh if needed)
+  const { getValidAccessToken } = await import('@/lib/token-refresh');
+  
+  const accessToken = await getValidAccessToken(userEmail, 'google');
+  
+  if (!accessToken) {
+    throw new Error('No valid Google access token found for user');
+  }
+
+  console.log('Updating Google event:', googleEventId, 'with data:', updateData);
+
+  // Convert our event data to Google Calendar format
+  const googleEvent = {
+    summary: updateData.title,
+    description: updateData.description,
+    start: updateData.is_all_day ? { date: updateData.start_time } : { dateTime: updateData.start_time },
+    end: updateData.is_all_day ? { date: updateData.end_time } : { dateTime: updateData.end_time },
+    location: updateData.location,
+  };
+
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${googleEventId}`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(googleEvent),
+    }
+  );
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Google API update error:', {
+      status: response.status,
+      statusText: response.statusText,
+      body: errorText
+    });
+    throw new Error(`Failed to update Google event: ${response.statusText} (${response.status}) - ${errorText}`);
+  }
+
+  const updatedEvent = await response.json();
+  console.log('Successfully updated Google event:', googleEventId);
+  return updatedEvent;
+}
+
+export async function updateGoogleEventWithRefresh(
+  googleEventId: string,
+  updateData: Partial<UnifiedEvent>,
+  userEmail: string
+): Promise<GoogleCalendarEvent> {
+  return updateGoogleEvent(googleEventId, updateData, userEmail);
 } 

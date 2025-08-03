@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import CalendarView from '@/components/CalendarView';
 import VoiceInput from '@/components/VoiceInput';
 import EventForm from '@/components/EventForm';
+import EventEditModal from '@/components/EventEditModal';
 import { UnifiedEvent, VoiceEventData } from '@/types/events';
 import { useColors } from '@/components/ColorContext';
 import { convertVoiceDataToEventData, parseVoiceToEvent } from '@/lib/voice-parser';
@@ -15,6 +16,8 @@ export default function DashboardPage() {
   const queryClient = useQueryClient();
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [isEventFormOpen, setIsEventFormOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedEvent, setSelectedEvent] = useState<UnifiedEvent | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
@@ -100,6 +103,36 @@ export default function DashboardPage() {
     },
   });
 
+  // Update event mutation
+  const updateEventMutation = useMutation({
+    mutationFn: async ({ eventId, updateData }: { eventId: string; updateData: Partial<UnifiedEvent> }) => {
+      const response = await fetch('/api/events', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ eventId, ...updateData }),
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to update event');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      const message = data.providerUpdateSuccess 
+        ? 'Event updated successfully in calendar and database!' 
+        : `Event updated in database. Note: ${data.providerError}`;
+      setNotification({ type: 'success', message });
+      setTimeout(() => setNotification(null), 3000);
+    },
+    onError: (error) => {
+      setNotification({ type: 'error', message: error.message || 'Failed to update event' });
+      setTimeout(() => setNotification(null), 5000);
+    },
+  });
+
   // Create event mutation
   const createEventMutation = useMutation({
     mutationFn: async (eventData: VoiceEventData) => {
@@ -155,18 +188,26 @@ export default function DashboardPage() {
     },
   });
 
-
-
   const handleVoiceEventParsed = (eventData: VoiceEventData) => {
     createEventMutation.mutate(eventData);
   };
 
   const handleEventClick = (event: UnifiedEvent) => {
-    // TODO: Open event details modal
+    setSelectedEvent(event);
+    setIsEditModalOpen(true);
   };
 
   const handleEventDelete = async (eventId: string) => {
     deleteEventMutation.mutate(eventId);
+  };
+
+  const handleEventUpdate = async (eventId: string, updateData: Partial<UnifiedEvent>) => {
+    updateEventMutation.mutate({ eventId, updateData });
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedEvent(null);
   };
 
   if (status === 'loading') {
@@ -235,6 +276,12 @@ export default function DashboardPage() {
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
                     <span className="hidden sm:inline">Deleting event...</span>
+                  </>
+                )}
+                {updateEventMutation.isPending && (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
+                    <span className="hidden sm:inline">Updating event...</span>
                   </>
                 )}
               </div>
@@ -330,7 +377,7 @@ export default function DashboardPage() {
               <CalendarView 
                 events={events} 
                 onEventClick={handleEventClick}
-                onEventDelete={handleEventDelete}
+                onEventEdit={handleEventClick}
                 userColors={userColors}
               />
             )}
@@ -350,6 +397,15 @@ export default function DashboardPage() {
         isOpen={isEventFormOpen}
         onClose={() => setIsEventFormOpen(false)}
         onEventParsed={handleVoiceEventParsed}
+      />
+
+      {/* Event Edit Modal */}
+      <EventEditModal
+        event={selectedEvent}
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        onSave={handleEventUpdate}
+        onDelete={handleEventDelete}
       />
     </div>
   );

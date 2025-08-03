@@ -39,6 +39,111 @@ export async function GET(request: NextRequest) {
   }
 }
 
+export async function PUT(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const eventData = await request.json();
+    const { eventId, ...updateData } = eventData;
+    
+    if (!eventId) {
+      return NextResponse.json({ error: 'Event ID is required' }, { status: 400 });
+    }
+
+    console.log(`Attempting to update event ${eventId} for user ${session.user.email}`);
+
+    // First, get the event to check ownership and get provider info
+    const { data: event, error: fetchError } = await supabase
+      .from('events')
+      .select('*')
+      .eq('id', eventId)
+      .eq('user_id', session.user.email)
+      .single();
+
+    if (fetchError || !event) {
+      console.error('Event not found or access denied:', { eventId, userEmail: session.user.email, error: fetchError });
+      return NextResponse.json({ error: 'Event not found or access denied' }, { status: 404 });
+    }
+
+    console.log('Found event to update:', {
+      id: event.id,
+      title: event.title,
+      provider: event.provider,
+      hasGoogleId: !!event.google_event_id,
+      hasOutlookId: !!event.outlook_event_id
+    });
+
+    // Update in the original provider if we have the provider event ID
+    let providerUpdateSuccess = true;
+    let providerError = null;
+
+    try {
+      if (event.provider === 'google' && event.google_event_id) {
+        console.log('Attempting to update in Google Calendar:', event.google_event_id);
+        // Import and call Google update function
+        const { updateGoogleEvent } = await import('@/services/sync/google');
+        await updateGoogleEvent(event.google_event_id, updateData, session.user.email);
+        console.log('Successfully updated in Google Calendar');
+      } else if (event.provider === 'outlook' && event.outlook_event_id) {
+        console.log('Attempting to update in Outlook:', event.outlook_event_id);
+        // Import and call Outlook update function
+        const { updateOutlookEvent } = await import('@/services/sync/outlook');
+        await updateOutlookEvent(event.outlook_event_id, updateData, session.user.email);
+        console.log('Successfully updated in Outlook');
+      } else {
+        console.log('No provider-specific ID found, skipping provider update');
+      }
+      // Add other providers as needed
+    } catch (error) {
+      console.error(`Failed to update event in ${event.provider}:`, error);
+      providerUpdateSuccess = false;
+      providerError = error instanceof Error ? error.message : 'Unknown error';
+    }
+
+    // Update in our database
+    console.log('Updating event in database:', eventId);
+    const { error: updateError } = await supabase
+      .from('events')
+      .update({
+        ...updateData,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', eventId)
+      .eq('user_id', session.user.email);
+
+    if (updateError) {
+      console.error('Supabase error updating event:', updateError);
+      return NextResponse.json({ 
+        error: 'Failed to update event in database',
+        details: updateError.message 
+      }, { status: 500 });
+    }
+
+    console.log('Successfully updated event in database');
+
+    return NextResponse.json({ 
+      success: true,
+      message: 'Event updated successfully',
+      providerUpdateSuccess,
+      providerError
+    });
+
+  } catch (error) {
+    console.error('Update event API error:', error);
+    return NextResponse.json(
+      { 
+        error: 'Failed to update event',
+        details: error instanceof Error ? error.message : 'Unknown error'
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function DELETE(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);

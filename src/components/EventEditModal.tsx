@@ -6,11 +6,12 @@ import { UnifiedEvent, VoiceEventData, CalendarProvider } from '@/types/events';
 interface EventEditModalProps {
   event: UnifiedEvent | null;
   onClose: () => void;
-  onSave: (eventData: VoiceEventData) => void;
+  onSave: (eventId: string, updateData: Partial<UnifiedEvent>) => void;
+  onDelete?: (eventId: string) => Promise<void>;
   isOpen: boolean;
 }
 
-export default function EventEditModal({ event, onClose, onSave, isOpen }: EventEditModalProps) {
+export default function EventEditModal({ event, onClose, onSave, onDelete, isOpen }: EventEditModalProps) {
   const [formData, setFormData] = useState({
     title: '',
     date: new Date().toISOString().split('T')[0],
@@ -24,6 +25,9 @@ export default function EventEditModal({ event, onClose, onSave, isOpen }: Event
   
   const [providers, setProviders] = useState<CalendarProvider[]>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Load event data when modal opens
   useEffect(() => {
@@ -115,8 +119,10 @@ export default function EventEditModal({ event, onClose, onSave, isOpen }: Event
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!event) return;
     
     // Validate required fields
     if (!formData.title.trim()) {
@@ -129,28 +135,68 @@ export default function EventEditModal({ event, onClose, onSave, isOpen }: Event
       return;
     }
     
-    // Convert form data to VoiceEventData format
-    const eventData: VoiceEventData = {
-      title: formData.title.trim(),
-      date: formData.date,
-      time: formData.startTime && formData.endTime ? `${formData.startTime} - ${formData.endTime}` : undefined,
-      location: formData.location || undefined,
-      description: formData.description || undefined,
-      provider: formData.provider,
-    };
+    setIsSubmitting(true);
+    
+    try {
+      // Convert form data to UnifiedEvent format
+      const startDateTime = formData.isAllDay 
+        ? new Date(formData.date).toISOString().split('T')[0]
+        : new Date(`${formData.date}T${formData.startTime}`).toISOString();
+      
+      const endDateTime = formData.isAllDay
+        ? new Date(formData.date).toISOString().split('T')[0]
+        : new Date(`${formData.date}T${formData.endTime}`).toISOString();
+      
+      const updateData: Partial<UnifiedEvent> = {
+        title: formData.title.trim(),
+        start_time: startDateTime,
+        end_time: endDateTime,
+        location: formData.location || undefined,
+        description: formData.description || undefined,
+        is_all_day: formData.isAllDay,
+      };
 
-    onSave(eventData);
-    onClose();
+      await onSave(event.id, updateData);
+      onClose();
+    } catch (error) {
+      console.error('Failed to update event:', error);
+      alert('Failed to update event. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!event || !onDelete) return;
+    
+    setIsDeleting(true);
+    setShowDeleteConfirm(false);
+    
+    try {
+      await onDelete(event.id);
+      onClose();
+    } catch (error) {
+      console.error('Failed to delete event:', error);
+      alert('Failed to delete event. Please try again.');
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleCancel = () => {
     onClose();
   };
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   if (!isOpen || !event) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Edit Event</h3>
@@ -314,21 +360,61 @@ export default function EventEditModal({ event, onClose, onSave, isOpen }: Event
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
+            {onDelete && (
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isSubmitting || isDeleting}
+                className="flex-1 px-4 py-2 text-red-700 bg-red-100 border border-red-300 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+              >
+                Delete
+              </button>
+            )}
             <button
               type="button"
               onClick={handleCancel}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              disabled={isSubmitting || isDeleting}
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              disabled={isSubmitting || isDeleting}
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
             >
-              Save Changes
+              {isSubmitting ? 'Saving...' : 'Save'}
             </button>
           </div>
         </form>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
+            <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+              <h4 className="text-lg font-semibold text-gray-900 mb-4">Delete Event</h4>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete "{event.title}"? This action cannot be undone.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                >
+                  {isDeleting ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
