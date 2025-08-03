@@ -217,24 +217,24 @@ export default function DashboardPage() {
               <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
             </div>
             
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 {isSyncing && (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-                    <span>Syncing...</span>
+                    <span className="hidden sm:inline">Syncing...</span>
                   </>
                 )}
                 {isCreatingEvent && (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
-                    <span>Creating event...</span>
+                    <span className="hidden sm:inline">Creating event...</span>
                   </>
                 )}
                 {deleteEventMutation.isPending && (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-red-500"></div>
-                    <span>Deleting event...</span>
+                    <span className="hidden sm:inline">Deleting event...</span>
                   </>
                 )}
               </div>
@@ -242,32 +242,18 @@ export default function DashboardPage() {
               <button
                 onClick={() => syncMutation.mutate()}
                 disabled={isSyncing}
-                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
               >
-                Sync Now
-              </button>
-              
-              <button
-                onClick={() => setIsEventFormOpen(true)}
-                className="w-10 h-10 bg-green-500 text-white rounded-full hover:bg-green-600 flex items-center justify-center mr-2"
-                title="Add Event"
-              >
-                ➕
-              </button>
-              
-              <button
-                onClick={() => setIsVoiceModalOpen(true)}
-                className="w-10 h-10 bg-blue-500 text-white rounded-full hover:bg-blue-600 flex items-center justify-center"
-                title="Voice Input"
-              >
-                🎤
+                <span className="hidden sm:inline">Sync</span>
+                <span className="sm:hidden">🔄</span>
               </button>
               
               <button
                 onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="px-4 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
               >
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
+                <span className="sm:hidden">🚪</span>
               </button>
             </div>
           </div>
@@ -282,66 +268,50 @@ export default function DashboardPage() {
             <div className="bg-white rounded-lg shadow p-6">
               <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
               
-              <div className="space-y-3">
+              <div className="grid grid-cols-4 lg:grid-cols-1 gap-3">
                 <button
                   onClick={() => setIsEventFormOpen(true)}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  title="Add Event"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
-                      ➕
-                    </div>
-                    <div>
-                      <div className="font-medium">Add Event</div>
-                      <div className="text-sm text-gray-500">Create event manually</div>
-                    </div>
+                  <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                    ➕
                   </div>
+                  <span className="text-sm font-medium text-center">Event</span>
                 </button>
                 
                 <button
                   onClick={() => setIsVoiceModalOpen(true)}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  title="Voice Input"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center">
-                      🎤
-                    </div>
-                    <div>
-                      <div className="font-medium">Voice Input</div>
-                      <div className="text-sm text-gray-500">Add event by voice</div>
-                    </div>
+                  <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                    🎤
                   </div>
+                  <span className="text-sm font-medium text-center">Voice</span>
                 </button>
                 
                 <button
                   onClick={() => syncMutation.mutate()}
                   disabled={isSyncing}
-                  className="w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  title="Sync Calendars"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-green-500 text-white rounded-full flex items-center justify-center">
-                      🔄
-                    </div>
-                    <div>
-                      <div className="font-medium">Sync Calendars</div>
-                      <div className="text-sm text-gray-500">Update all events</div>
-                    </div>
+                  <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                    🔄
                   </div>
+                  <span className="text-sm font-medium text-center">Sync</span>
                 </button>
                 
                 <a
                   href="/settings"
-                  className="block w-full text-left p-3 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  title="Settings"
                 >
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-gray-500 text-white rounded-full flex items-center justify-center">
-                      ⚙️
-                    </div>
-                    <div>
-                      <div className="font-medium">Settings</div>
-                      <div className="text-sm text-gray-500">Manage connections</div>
-                    </div>
+                  <div className="w-12 h-12 bg-gray-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                    ⚙️
                   </div>
+                  <span className="text-sm font-medium text-center">Settings</span>
                 </a>
               </div>
             </div>
