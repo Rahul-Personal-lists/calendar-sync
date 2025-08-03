@@ -18,7 +18,6 @@ export default function DashboardPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isCreatingEvent, setIsCreatingEvent] = useState(false);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-  const [configError, setConfigError] = useState<string | null>(null);
   const { userColors } = useColors();
 
   // Debug logging
@@ -28,25 +27,6 @@ export default function DashboardPage() {
     console.log('Session data:', session);
   }, [status, session]);
 
-  // Check for required environment variables
-  useEffect(() => {
-    console.log('Checking environment variables...');
-    const requiredVars = [
-      'NEXT_PUBLIC_SUPABASE_URL',
-      'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-      'NEXTAUTH_SECRET',
-      'GOOGLE_CLIENT_ID',
-      'GOOGLE_CLIENT_SECRET'
-    ];
-    
-    const missingVars = requiredVars.filter(varName => !process.env[varName]);
-    console.log('Missing environment variables:', missingVars);
-    
-    if (missingVars.length > 0) {
-      setConfigError(`Missing environment variables: ${missingVars.join(', ')}`);
-    }
-  }, []);
-
   // Fetch events
   const { data: events = [], isLoading } = useQuery({
     queryKey: ['events'],
@@ -55,7 +35,7 @@ export default function DashboardPage() {
       if (!response.ok) throw new Error('Failed to fetch events');
       return response.json();
     },
-    enabled: !!session && !configError,
+    enabled: !!session,
   });
 
   // Sync mutation
@@ -188,25 +168,6 @@ export default function DashboardPage() {
   const handleEventDelete = async (eventId: string) => {
     deleteEventMutation.mutate(eventId);
   };
-
-  if (configError) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-lg p-8 max-w-md mx-4">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Error</h1>
-          <p className="text-gray-700 mb-4">
-            The application is missing required environment variables. Please check your Vercel deployment settings.
-          </p>
-          <div className="bg-gray-100 p-4 rounded text-sm font-mono">
-            {configError}
-          </div>
-          <p className="text-sm text-gray-500 mt-4">
-            Add the missing environment variables in your Vercel project settings and redeploy.
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   if (status === 'loading') {
     return (

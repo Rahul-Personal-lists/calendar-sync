@@ -7,12 +7,13 @@ export default function TestPage() {
           If you can see this page, the basic routing is working correctly.
         </p>
         <div className="bg-gray-100 p-4 rounded text-sm font-mono">
-          <p><strong>Environment Check:</strong></p>
+          <p><strong>Environment Check (Client-side only):</strong></p>
           <p>NEXT_PUBLIC_SUPABASE_URL: {process.env.NEXT_PUBLIC_SUPABASE_URL ? '✅ Set' : '❌ Missing'}</p>
           <p>NEXT_PUBLIC_SUPABASE_ANON_KEY: {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Set' : '❌ Missing'}</p>
-          <p>NEXTAUTH_SECRET: {process.env.NEXTAUTH_SECRET ? '✅ Set' : '❌ Missing'}</p>
-          <p>GOOGLE_CLIENT_ID: {process.env.GOOGLE_CLIENT_ID ? '✅ Set' : '❌ Missing'}</p>
-          <p>GOOGLE_CLIENT_SECRET: {process.env.GOOGLE_CLIENT_SECRET ? '✅ Set' : '❌ Missing'}</p>
+          <p><strong>Server-side variables (not shown on client):</strong></p>
+          <p>NEXTAUTH_SECRET: [Server-side only]</p>
+          <p>GOOGLE_CLIENT_ID: [Server-side only]</p>
+          <p>GOOGLE_CLIENT_SECRET: [Server-side only]</p>
         </div>
         <a
           href="/dashboard"
