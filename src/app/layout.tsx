@@ -23,6 +23,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  console.log('RootLayout rendering');
+  console.log('Environment check in layout:', {
+    hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    hasNextAuthSecret: !!process.env.NEXTAUTH_SECRET,
+  });
+
   return (
     <html lang="en">
       <head>
