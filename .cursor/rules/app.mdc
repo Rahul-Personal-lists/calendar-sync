@@ -1,0 +1,200 @@
+---
+alwaysApply: true
+---
+# 🧭 Cursor Rules – Calendar Sync App
+
+## 🗭 Project Structure
+```
+/src
+  /app              ← Pages (App Router style)
+  /components       ← UI Components
+  /api              ← Calendar sync endpoints
+  /services         ← Provider logic (Google, Notion, etc.)
+  /lib              ← Supabase, auth, utils
+  /types            ← Shared TS types
+  /styles           ← Tailwind + UI
+  /public           ← PWA icons/manifest
+```
+
+---
+
+## 📓 Task Board
+
+### ⚠️ Setup & Environment
+- [ ] Scaffold project with Next.js App Router + Tailwind
+- [ ] Configure `next-pwa` with installable `manifest.json`
+- [ ] Add Supabase client + auth helpers to `/lib`
+- [ ] Configure NextAuth with Google + Outlook + Notion providers
+
+### 🔐 Auth + Session
+- [ ] Implement `/app/api/auth/[...nextauth]/route.ts`
+- [ ] Add Supabase adapter and secure token storage
+- [ ] Create sign-in UI (`/components/Auth.tsx`)
+
+### 🔁 Sync Engine
+- [ ] Create `/services/sync/google.ts` with dummy `fetchGoogleEvents()` method
+- [ ] Create shared `UnifiedEvent` type in `/types/events.ts`
+- [ ] Create `/api/sync/google/route.ts` with session check + JSON response
+
+### 🔧 Core Components
+- [ ] Add `CalendarView.tsx` component to render unified events
+- [ ] Create `VoiceInput.tsx` component using Web Speech API
+- [ ] Add `EventCard.tsx` for modular event UI
+
+### 📱 Mobile & PWA
+- [ ] Add `manifest.json` and installable icons in `/public`
+- [ ] Ensure responsive layout with Tailwind
+- [ ] Enable voice input for mobile (Chrome-only for now)
+
+### 🧪 Testing
+- [ ] Write unit tests for `normalizeGoogleEvent()` function (in `lib`)
+- [ ] Write E2E test using Playwright: login + sync + event render
+- [ ] Add test for voice-to-event parsing
+
+### 📂 Docs & Cleanups
+- [ ] Add usage instructions to `/notes/architecture.md`
+- [ ] Create README in `/services/sync`
+- [ ] Write a `sync-debug-log.ts` helper for dev inspection
+
+---
+
+## 🧱 Coding Guidelines
+- Use **TypeScript** throughout
+- Use **functional components** only
+- Use **Tailwind CSS** for layout/styling
+- Prefer **ShadCN UI** or custom components
+- Format with **Prettier** (auto-save)
+
+---
+
+## 🔌 Supabase (Database)
+- DB: **PostgreSQL** via Supabase
+- ORM: Optional (Prisma or Drizzle)
+- Store user sessions, tokens, unified events
+- Enable **Row Level Security** per user
+- Track `sync_logs`, `connected_accounts`, `events`
+
+---
+
+## 🔐 Authentication
+- Use **NextAuth.js**
+- Provider logins: Google, Outlook, Notion
+- Supabase adapter for session/user persistence
+- Tokens stored in `connected_accounts`
+
+---
+
+## 🦁 PWA (Web App Installable Anywhere)
+- Use `next-pwa` to enable offline support + installability
+- Add `manifest.json` to `/public`
+- Add custom icons (512x512, 192x192)
+- Example config:
+```ts
+// next.config.js
+const withPWA = require("next-pwa")({
+  dest: "public",
+  register: true,
+  skipWaiting: true,
+});
+module.exports = withPWA({ reactStrictMode: true });
+```
+
+- Voice Input: Use **Web Speech API** on Chrome (limited Safari support)
+- Works on mobile, desktop, tablet
+
+---
+
+## 🔁 Sync Engine
+- Each calendar provider lives in `/services/sync/[provider].ts`
+- Normalize event shape to `UnifiedEvent`
+- Detect diffs, avoid duplicate syncs
+- Use cron jobs or Supabase edge functions
+
+```ts
+interface UnifiedEvent {
+  id: string;
+  provider: 'google' | 'outlook' | 'notion' | 'apple';
+  title: string;
+  start: string;
+  end: string;
+  notionPageId?: string;
+}
+```
+
+---
+
+## ⚙️ API Routes
+- Use App Router (`/app/api/...`)
+- Auth-protect routes with `getServerSession()`
+- Follow route structure: `/api/sync/[provider]`
+
+---
+
+## 💬 Naming Conventions
+| Element      | Format           | Example              |
+|--------------|------------------|----------------------|
+| Files/Folders| kebab-case       | `sync-engine.ts`     |
+| Components   | PascalCase       | `CalendarView.tsx`   |
+| Variables    | camelCase        | `startTime`          |
+| Types/Enums  | PascalCase       | `CalendarProvider`   |
+| Constants    | UPPER_SNAKE_CASE | `DEFAULT_TIMEZONE`   |
+
+---
+
+## 📦 State Management
+- Use **React Query** for async data + caching
+- Use **Zustand** only for local UI state (filters, modals)
+
+---
+
+## 🧪 Testing
+- Unit tests with **Vitest**
+- E2E with **Playwright** (UI + sync flows)
+- Add tests for:
+  - Event normalization
+  - Sync logic
+  - API permissions
+
+---
+
+## 🛡️ Security
+- Token storage is encrypted
+- All sync endpoints require active session
+- Don’t log sensitive tokens
+
+---
+
+## 🚀 Git & Branching
+- Use feature branches: `feat/`, `fix/`, `refactor/`
+- Commits:
+  ```
+  feat(sync): added Notion event import handler
+  fix(api): handle missing refresh token
+  ```
+- Pull requests must include:
+  - What changed
+  - How to test it
+  - Related issue (if any)
+
+---
+
+## 🗂️ Docs & Notes
+- Add architecture sketches to `/notes`
+- Create a `README.md` per service if needed
+- Use `// TODO:` and `// ⏳ In progress` in Cursor comments
+
+---
+
+## ✅ MVP Feature Set
+- [x] Google, Outlook, Notion calendar support
+- [x] Real-time or near-time syncing
+- [x] Unified event view (color-coded)
+- [x] Conflict handling strategy
+- [x] Voice event creation via Web Speech API
+- [x] Mobile + Desktop support via PWA
+- [ ] Notion task-to-calendar linking
+- [ ] Smart scheduling suggestions (stretch)
+
+---
+
+> Build for all screens. Speak to add. Sync everywhere.
