@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { VoiceEventData } from '@/types/events';
+import { VoiceEventData, RepeatOptions } from '@/types/events';
 
 interface EventFormProps {
   onEventParsed: (eventData: VoiceEventData) => void;
@@ -19,13 +19,13 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
     description: '',
     isAllDay: false,
     repeat: {
-      frequency: 'none' as const,
+      frequency: 'none',
       interval: 1,
       endDate: '',
       endAfterOccurrences: 10,
       daysOfWeek: [],
       dayOfMonth: 1,
-    },
+    } as RepeatOptions,
   });
 
   // Predefined time slots for end time
@@ -113,13 +113,13 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       description: '',
       isAllDay: false,
       repeat: {
-        frequency: 'none' as const,
+        frequency: 'none',
         interval: 1,
         endDate: '',
         endAfterOccurrences: 10,
         daysOfWeek: [],
         dayOfMonth: 1,
-      },
+      } as RepeatOptions,
     });
   };
 
@@ -135,13 +135,13 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       description: '',
       isAllDay: false,
       repeat: {
-        frequency: 'none' as const,
+        frequency: 'none',
         interval: 1,
         endDate: '',
         endAfterOccurrences: 10,
         daysOfWeek: [],
         dayOfMonth: 1,
-      },
+      } as RepeatOptions,
     });
   };
 
@@ -371,11 +371,12 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                         <label key={day} className="flex items-center justify-center">
                           <input
                             type="checkbox"
-                            checked={formData.repeat.daysOfWeek.includes(index)}
+                            checked={formData.repeat.daysOfWeek?.includes(index) || false}
                             onChange={(e) => {
+                              const currentDays = formData.repeat.daysOfWeek || [];
                               const newDays = e.target.checked
-                                ? [...formData.repeat.daysOfWeek, index]
-                                : formData.repeat.daysOfWeek.filter(d => d !== index);
+                                ? [...currentDays, index]
+                                : currentDays.filter(d => d !== index);
                               setFormData(prev => ({
                                 ...prev,
                                 repeat: { ...prev.repeat, daysOfWeek: newDays }

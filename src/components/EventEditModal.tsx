@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UnifiedEvent, VoiceEventData, CalendarProvider } from '@/types/events';
+import { UnifiedEvent, VoiceEventData, CalendarProvider, RepeatOptions } from '@/types/events';
 import ProviderIcon from './ProviderIcon';
 
 interface EventEditModalProps {
@@ -23,13 +23,13 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
     isAllDay: false,
     provider: 'google' as 'google' | 'outlook' | 'notion' | 'apple' | 'azure-ad',
     repeat: {
-      frequency: 'none' as const,
+      frequency: 'none',
       interval: 1,
       endDate: '',
       endAfterOccurrences: 10,
       daysOfWeek: [],
       dayOfMonth: 1,
-    },
+    } as RepeatOptions,
   });
   
   const [providers, setProviders] = useState<CalendarProvider[]>([]);
@@ -62,13 +62,13 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
       isAllDay: event.is_all_day || false,
       provider: event.provider,
       repeat: event.repeat || {
-        frequency: 'none' as const,
+        frequency: 'none',
         interval: 1,
         endDate: '',
         endAfterOccurrences: 10,
         daysOfWeek: [],
         dayOfMonth: 1,
-      },
+      } as RepeatOptions,
     });
   };
 
@@ -446,11 +446,12 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                         <label key={day} className="flex items-center justify-center">
                           <input
                             type="checkbox"
-                            checked={formData.repeat.daysOfWeek.includes(index)}
+                            checked={formData.repeat.daysOfWeek?.includes(index) || false}
                             onChange={(e) => {
+                              const currentDays = formData.repeat.daysOfWeek || [];
                               const newDays = e.target.checked
-                                ? [...formData.repeat.daysOfWeek, index]
-                                : formData.repeat.daysOfWeek.filter(d => d !== index);
+                                ? [...currentDays, index]
+                                : currentDays.filter(d => d !== index);
                               setFormData(prev => ({
                                 ...prev,
                                 repeat: { ...prev.repeat, daysOfWeek: newDays }
