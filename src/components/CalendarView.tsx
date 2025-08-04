@@ -40,14 +40,167 @@ export default function CalendarView({
     return { daysInMonth, startingDayOfWeek };
   };
 
+  // Generate all occurrences of a recurring event up to a given end date
+  const generateRecurringOccurrences = (event: UnifiedEvent, endDate: Date): Date[] => {
+    if (!isRecurringEvent(event)) {
+      return [new Date(event.start_time)];
+    }
+
+    const occurrences: Date[] = [];
+    const startDate = new Date(event.start_time);
+    const repeat = event.repeat!;
+    
+    // Calculate end date for recurrence
+    let recurrenceEndDate: Date;
+    if (repeat.endDate) {
+      recurrenceEndDate = new Date(repeat.endDate);
+    } else if (repeat.endAfterOccurrences) {
+      // Calculate end date based on number of occurrences
+      const maxOccurrences = repeat.endAfterOccurrences;
+      let count = 0;
+      
+      // Generate occurrences based on frequency
+      if (repeat.frequency === 'weekly' && repeat.daysOfWeek && repeat.daysOfWeek.length > 0) {
+        // Handle weekly recurrence with specific days
+        let currentDate = new Date(startDate);
+        const interval = repeat.interval || 1;
+        
+        while (count < maxOccurrences) {
+          // Add the current occurrence
+          occurrences.push(new Date(currentDate));
+          count++;
+          
+          // Find the next occurrence based on days of week
+          let nextDate = new Date(currentDate);
+          let weeksAdded = 0;
+          
+          while (weeksAdded < interval) {
+            // Move to next week
+            nextDate.setDate(nextDate.getDate() + 7);
+            weeksAdded++;
+          }
+          
+          // Find the next occurrence on the specified day of week
+          const targetDay = repeat.daysOfWeek[0]; // For now, use the first day
+          const currentDay = nextDate.getDay();
+          const daysToAdd = (targetDay - currentDay + 7) % 7;
+          nextDate.setDate(nextDate.getDate() + daysToAdd);
+          
+          currentDate = nextDate;
+        }
+      } else {
+        // Handle other frequencies
+        let currentDate = new Date(startDate);
+        
+        while (count < maxOccurrences) {
+          occurrences.push(new Date(currentDate));
+          count++;
+          
+          // Calculate next occurrence
+          switch (repeat.frequency) {
+            case 'daily':
+              currentDate.setDate(currentDate.getDate() + (repeat.interval || 1));
+              break;
+            case 'weekly':
+              currentDate.setDate(currentDate.getDate() + 7 * (repeat.interval || 1));
+              break;
+            case 'monthly':
+              currentDate.setMonth(currentDate.getMonth() + (repeat.interval || 1));
+              break;
+            case 'yearly':
+              currentDate.setFullYear(currentDate.getFullYear() + (repeat.interval || 1));
+              break;
+          }
+        }
+      }
+      
+      return occurrences;
+    } else {
+      // No end condition, generate occurrences up to the end date
+      recurrenceEndDate = endDate;
+    }
+
+    // Generate occurrences up to end date
+    if (repeat.frequency === 'weekly' && repeat.daysOfWeek && repeat.daysOfWeek.length > 0) {
+      // Handle weekly recurrence with specific days
+      let currentDate = new Date(startDate);
+      const interval = repeat.interval || 1;
+      
+      while (currentDate <= recurrenceEndDate) {
+        occurrences.push(new Date(currentDate));
+        
+        // Find the next occurrence based on days of week
+        let nextDate = new Date(currentDate);
+        let weeksAdded = 0;
+        
+        while (weeksAdded < interval) {
+          // Move to next week
+          nextDate.setDate(nextDate.getDate() + 7);
+          weeksAdded++;
+        }
+        
+        // Find the next occurrence on the specified day of week
+        const targetDay = repeat.daysOfWeek[0]; // For now, use the first day
+        const currentDay = nextDate.getDay();
+        const daysToAdd = (targetDay - currentDay + 7) % 7;
+        nextDate.setDate(nextDate.getDate() + daysToAdd);
+        
+        currentDate = nextDate;
+      }
+    } else {
+      // Handle other frequencies
+      let currentDate = new Date(startDate);
+      
+      while (currentDate <= recurrenceEndDate) {
+        occurrences.push(new Date(currentDate));
+        
+        // Calculate next occurrence
+        switch (repeat.frequency) {
+          case 'daily':
+            currentDate.setDate(currentDate.getDate() + (repeat.interval || 1));
+            break;
+          case 'weekly':
+            currentDate.setDate(currentDate.getDate() + 7 * (repeat.interval || 1));
+            break;
+          case 'monthly':
+            currentDate.setMonth(currentDate.getMonth() + (repeat.interval || 1));
+            break;
+          case 'yearly':
+            currentDate.setFullYear(currentDate.getFullYear() + (repeat.interval || 1));
+            break;
+        }
+      }
+    }
+
+    return occurrences;
+  };
+
   const getEventsForDate = (date: Date) => {
-    return events.filter(event => {
-      const eventDate = new Date(event.start_time);
-      return (
-        eventDate.getDate() === date.getDate() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getFullYear() === date.getFullYear()
-      );
+    const targetDate = new Date(date);
+    targetDate.setHours(0, 0, 0, 0);
+    
+    const filteredEvents = events.filter(event => {
+      // For non-recurring events, check exact date match
+      if (!isRecurringEvent(event)) {
+        const eventDate = new Date(event.start_time);
+        eventDate.setHours(0, 0, 0, 0);
+        return eventDate.getTime() === targetDate.getTime();
+      }
+
+      // For recurring events, check if any occurrence falls on this date
+      const occurrences = generateRecurringOccurrences(event, new Date(targetDate.getFullYear() + 1, 11, 31)); // End of next year
+      return occurrences.some(occurrence => {
+        const occurrenceDate = new Date(occurrence);
+        occurrenceDate.setHours(0, 0, 0, 0);
+        return occurrenceDate.getTime() === targetDate.getTime();
+      });
+    });
+
+    // Sort events by start time
+    return filteredEvents.sort((a, b) => {
+      const timeA = new Date(a.start_time).getTime();
+      const timeB = new Date(b.start_time).getTime();
+      return timeA - timeB;
     });
   };
 

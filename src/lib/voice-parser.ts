@@ -194,6 +194,7 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
   description?: string;
   location?: string;
   isAllDay: boolean;
+  repeat?: any;
 } {
   const parsedEvent = parseVoiceToEvent(`${voiceData.title} ${voiceData.time || ''} ${voiceData.date || ''}`);
   
@@ -205,12 +206,13 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
       description: parsedEvent.description,
       location: parsedEvent.location,
       isAllDay: false,
+      repeat: voiceData.repeat,
     };
   }
   
   // Fallback to original logic if parsing fails
-  let start = new Date();
-  let end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
+  let start: Date;
+  let end: Date;
   
   // Try to parse date and time from voice input
   if (voiceData.date || voiceData.time) {
@@ -218,7 +220,20 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
     if (parsedDate) {
       start = parsedDate;
       end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
+    } else {
+      // If parsing fails, use the date from the form directly
+      if (voiceData.date) {
+        const [year, month, day] = voiceData.date.split('-').map(Number);
+        start = new Date(year, month - 1, day); // month is 0-indexed
+        end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
+      } else {
+        start = new Date();
+        end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
+      }
     }
+  } else {
+    start = new Date();
+    end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
   }
   
   return {
@@ -228,6 +243,7 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
     description: voiceData.description,
     location: voiceData.location,
     isAllDay: false,
+    repeat: voiceData.repeat,
   };
 }
 

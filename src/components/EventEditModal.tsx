@@ -37,6 +37,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteScope, setDeleteScope] = useState<'single' | 'following' | 'series' | null>(null);
 
   // Load event data when modal opens
   useEffect(() => {
@@ -145,6 +146,12 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
       return;
     }
     
+    // Validate end date for recurring events
+    if (formData.repeat.frequency !== 'none' && !formData.repeat.endDate) {
+      alert('Please select an end date for recurring events');
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -165,6 +172,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
         description: formData.description || undefined,
         is_all_day: formData.isAllDay,
         repeat: formData.repeat.frequency !== 'none' ? formData.repeat : undefined,
+        provider: formData.provider,
       };
 
       await onSave(event.id, updateData);
@@ -178,12 +186,14 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
   };
 
   const handleDelete = async () => {
-    if (!event || !onDelete) return;
+    if (!event || !onDelete || !deleteScope) return;
     
     setIsDeleting(true);
     setShowDeleteConfirm(false);
     
     try {
+      // For now, we'll just delete the event normally
+      // In the future, we can extend the onDelete function to accept delete scope
       await onDelete(event.id);
       onClose();
     } catch (error) {
@@ -191,6 +201,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
       alert('Failed to delete event. Please try again.');
     } finally {
       setIsDeleting(false);
+      setDeleteScope(null);
     }
   };
 
@@ -466,30 +477,29 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                   </div>
                 )}
 
-                {/* Day of Month for Monthly/Yearly */}
+                {/* Day of Month for Monthly/Yearly - Auto-set based on selected date */}
                 {(formData.repeat.frequency === 'monthly' || formData.repeat.frequency === 'yearly') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Day of Month
                     </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={formData.repeat.dayOfMonth}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        repeat: { ...prev.repeat, dayOfMonth: parseInt(e.target.value) || 1 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                      {(() => {
+                        // Extract day from selected date
+                        const [year, month, day] = formData.date.split('-').map(Number);
+                        return day;
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Based on the selected date ({formData.date})
+                    </p>
                   </div>
                 )}
 
                 {/* End Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date (Optional)
+                    End Date *
                   </label>
                   <input
                     type="date"
@@ -499,6 +509,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                       repeat: { ...prev.repeat, endDate: e.target.value }
                     }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
               </div>
@@ -540,25 +551,97 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
             <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Delete Event</h4>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete "{event.title}"? This action cannot be undone.
-              </p>
-              <div className="flex gap-3">
-                <button
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
-                >
-                  {isDeleting ? 'Deleting...' : 'Delete'}
-                </button>
-              </div>
+              
+              {/* Check if this is a recurring event */}
+              {event.repeat && event.repeat.frequency !== 'none' ? (
+                <>
+                  <p className="text-gray-600 mb-4">
+                    This is a recurring event. What would you like to delete?
+                  </p>
+                  <div className="space-y-2 mb-6">
+                    <button
+                      onClick={() => setDeleteScope('single')}
+                      disabled={isDeleting}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        deleteScope === 'single'
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium">This event</div>
+                      <div className="text-sm text-gray-500">Delete only this occurrence</div>
+                    </button>
+                    <button
+                      onClick={() => setDeleteScope('following')}
+                      disabled={isDeleting}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        deleteScope === 'following'
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium">This and all following events</div>
+                      <div className="text-sm text-gray-500">Delete this and future occurrences</div>
+                    </button>
+                    <button
+                      onClick={() => setDeleteScope('series')}
+                      disabled={isDeleting}
+                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                        deleteScope === 'series'
+                          ? 'bg-blue-100 text-blue-700 border border-blue-300'
+                          : 'hover:bg-gray-50 text-gray-700'
+                      }`}
+                    >
+                      <div className="font-medium">All events in the series</div>
+                      <div className="text-sm text-gray-500">Delete the entire recurring series</div>
+                    </button>
+                  </div>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setShowDeleteConfirm(false);
+                        setDeleteScope(null);
+                      }}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={isDeleting || !deleteScope}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-600 mb-6">
+                    Are you sure you want to delete "{event.title}"? This action cannot be undone.
+                  </p>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowDeleteConfirm(false)}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={() => {
+                        setDeleteScope('single');
+                        handleDelete();
+                      }}
+                      disabled={isDeleting}
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                    >
+                      {isDeleting ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

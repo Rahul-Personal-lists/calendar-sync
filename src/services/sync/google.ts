@@ -7,10 +7,12 @@ export interface GoogleCalendarEvent {
   start: {
     dateTime?: string;
     date?: string;
+    timeZone?: string;
   };
   end: {
     dateTime?: string;
     date?: string;
+    timeZone?: string;
   };
   location?: string;
   attendees?: Array<{
@@ -136,16 +138,13 @@ function convertRepeatToGoogleRecurrence(repeat: any): string[] {
     rrule += `;BYMONTHDAY=${repeat.dayOfMonth}`;
   }
   
-  // Add end date if specified
-  if (repeat.endDate) {
+  // Add end condition - prioritize COUNT over UNTIL if both are specified
+  if (repeat.endAfterOccurrences && repeat.endAfterOccurrences > 0) {
+    rrule += `;COUNT=${repeat.endAfterOccurrences}`;
+  } else if (repeat.endDate) {
     const endDate = new Date(repeat.endDate);
     endDate.setDate(endDate.getDate() + 1); // Google uses exclusive end date
     rrule += `;UNTIL=${endDate.toISOString().slice(0, 10).replace(/-/g, '')}`;
-  }
-  
-  // Add count if specified
-  if (repeat.endAfterOccurrences && repeat.endAfterOccurrences > 0) {
-    rrule += `;COUNT=${repeat.endAfterOccurrences}`;
   }
   
   rules.push(`RRULE:${rrule}`);
@@ -160,14 +159,16 @@ export async function createGoogleEvent(
   const googleEvent: any = {
     summary: event.title,
     description: event.description,
-    start: event.is_all_day ? { date: event.start_time } : { dateTime: event.start_time },
-    end: event.is_all_day ? { date: event.end_time } : { dateTime: event.end_time },
+    start: event.is_all_day ? { date: event.start_time } : { dateTime: event.start_time, timeZone: 'UTC' },
+    end: event.is_all_day ? { date: event.end_time } : { dateTime: event.end_time, timeZone: 'UTC' },
     location: event.location,
   };
 
   // Add recurrence if specified
   if (event.repeat && event.repeat.frequency !== 'none') {
-    googleEvent.recurrence = convertRepeatToGoogleRecurrence(event.repeat);
+    const recurrenceRules = convertRepeatToGoogleRecurrence(event.repeat);
+    googleEvent.recurrence = recurrenceRules;
+    console.log('Generated recurrence rules:', recurrenceRules);
   }
 
   console.log('Creating Google event with data:', {
@@ -274,14 +275,16 @@ export async function updateGoogleEvent(
   const googleEvent: any = {
     summary: updateData.title,
     description: updateData.description,
-    start: updateData.is_all_day ? { date: updateData.start_time } : { dateTime: updateData.start_time },
-    end: updateData.is_all_day ? { date: updateData.end_time } : { dateTime: updateData.end_time },
+    start: updateData.is_all_day ? { date: updateData.start_time } : { dateTime: updateData.start_time, timeZone: 'UTC' },
+    end: updateData.is_all_day ? { date: updateData.end_time } : { dateTime: updateData.end_time, timeZone: 'UTC' },
     location: updateData.location,
   };
 
   // Add recurrence if specified
   if (updateData.repeat && updateData.repeat.frequency !== 'none') {
-    googleEvent.recurrence = convertRepeatToGoogleRecurrence(updateData.repeat);
+    const recurrenceRules = convertRepeatToGoogleRecurrence(updateData.repeat);
+    googleEvent.recurrence = recurrenceRules;
+    console.log('Generated recurrence rules:', recurrenceRules);
   }
 
   const response = await fetch(

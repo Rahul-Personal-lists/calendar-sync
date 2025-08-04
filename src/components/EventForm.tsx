@@ -90,6 +90,25 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       return;
     }
     
+    // Validate end date for recurring events
+    if (formData.repeat.frequency !== 'none' && !formData.repeat.endDate) {
+      alert('Please select an end date for recurring events');
+      return;
+    }
+    
+    // Auto-set daysOfWeek based on selected date for weekly recurrence
+    let repeatData = formData.repeat;
+    if (formData.repeat.frequency === 'weekly') {
+      // Create date in local timezone to avoid timezone issues
+      const [year, month, day] = formData.date.split('-').map(Number);
+      const selectedDate = new Date(year, month - 1, day); // month is 0-indexed
+      const dayOfWeek = selectedDate.getDay();
+      repeatData = {
+        ...formData.repeat,
+        daysOfWeek: [dayOfWeek]
+      };
+    }
+
     // Convert form data to VoiceEventData format
     const eventData: VoiceEventData = {
       title: formData.title.trim(),
@@ -97,7 +116,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       time: formData.startTime && formData.endTime ? `${formData.startTime} - ${formData.endTime}` : undefined,
       location: formData.location || undefined,
       description: formData.description || undefined,
-      repeat: formData.repeat.frequency !== 'none' ? formData.repeat : undefined,
+      repeat: repeatData.frequency !== 'none' ? repeatData : undefined,
     };
 
     onEventParsed(eventData);
@@ -147,8 +166,14 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
 
   if (!isOpen) return null;
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
       <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Add Event</h3>
@@ -360,61 +385,51 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   </div>
                 </div>
 
-                {/* Days of Week for Weekly */}
+                {/* Days of Week for Weekly - Auto-set based on selected date */}
                 {formData.repeat.frequency === 'weekly' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Days of Week
+                      Day of Week
                     </label>
-                    <div className="grid grid-cols-7 gap-1">
-                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
-                        <label key={day} className="flex items-center justify-center">
-                          <input
-                            type="checkbox"
-                            checked={formData.repeat.daysOfWeek?.includes(index) || false}
-                            onChange={(e) => {
-                              const currentDays = formData.repeat.daysOfWeek || [];
-                              const newDays = e.target.checked
-                                ? [...currentDays, index]
-                                : currentDays.filter(d => d !== index);
-                              setFormData(prev => ({
-                                ...prev,
-                                repeat: { ...prev.repeat, daysOfWeek: newDays }
-                              }));
-                            }}
-                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                          <span className="ml-1 text-xs">{day}</span>
-                        </label>
-                      ))}
+                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                      {(() => {
+                        // Create date in local timezone to avoid timezone issues
+                        const [year, month, day] = formData.date.split('-').map(Number);
+                        const selectedDate = new Date(year, month - 1, day); // month is 0-indexed
+                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const dayIndex = selectedDate.getDay();
+                        return dayNames[dayIndex];
+                      })()}
                     </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Based on the selected date ({formData.date})
+                    </p>
                   </div>
                 )}
 
-                {/* Day of Month for Monthly/Yearly */}
+                {/* Day of Month for Monthly/Yearly - Auto-set based on selected date */}
                 {(formData.repeat.frequency === 'monthly' || formData.repeat.frequency === 'yearly') && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Day of Month
                     </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="31"
-                      value={formData.repeat.dayOfMonth}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        repeat: { ...prev.repeat, dayOfMonth: parseInt(e.target.value) || 1 }
-                      }))}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
+                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                      {(() => {
+                        // Extract day from selected date
+                        const [year, month, day] = formData.date.split('-').map(Number);
+                        return day;
+                      })()}
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Based on the selected date ({formData.date})
+                    </p>
                   </div>
                 )}
 
                 {/* End Date */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date (Optional)
+                    End Date *
                   </label>
                   <input
                     type="date"
@@ -424,6 +439,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                       repeat: { ...prev.repeat, endDate: e.target.value }
                     }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    required
                   />
                 </div>
               </div>

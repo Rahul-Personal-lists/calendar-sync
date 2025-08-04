@@ -158,6 +158,7 @@ export default function DashboardPage() {
         eventFormData = convertVoiceDataToEventData(eventData);
       }
       
+      console.log('Sending event data to API:', eventFormData);
       const response = await fetch('/api/sync/google', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -190,6 +191,93 @@ export default function DashboardPage() {
 
   const handleVoiceEventParsed = (eventData: VoiceEventData) => {
     createEventMutation.mutate(eventData);
+  };
+
+  // Create form event mutation (separate from voice mutation)
+  const createFormEventMutation = useMutation({
+    mutationFn: async (eventFormData: any) => {
+      setIsCreatingEvent(true);
+      
+      console.log('Sending form event data to API:', eventFormData);
+      const response = await fetch('/api/sync/google', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventFormData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.needsReAuth) {
+          throw new Error('Your Google account needs to be re-authenticated. Please sign out and sign in again with Google.');
+        }
+        throw new Error(errorData.error || 'Failed to create event');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['events'] });
+      setNotification({ type: 'success', message: 'Event created successfully!' });
+      setTimeout(() => setNotification(null), 3000);
+    },
+    onError: (error) => {
+      setNotification({ type: 'error', message: error.message || 'Failed to create event' });
+      setTimeout(() => setNotification(null), 5000);
+    },
+    onSettled: () => {
+      setIsCreatingEvent(false);
+    },
+  });
+
+  const handleFormEventParsed = (eventData: VoiceEventData) => {
+    // For EventForm, send data directly without voice parsing
+    console.log('EventForm data received:', eventData);
+    
+    const eventFormData = {
+      title: eventData.title,
+      start: (() => {
+        // Convert date and time to ISO string
+        const [year, month, day] = eventData.date!.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        
+        if (eventData.time) {
+          const [startTime] = eventData.time.split(' - ');
+          const [hours, minutes] = startTime.split(':').map(Number);
+          date.setHours(hours, minutes, 0, 0);
+        }
+        
+        console.log('Start date calculation:', {
+          originalDate: eventData.date,
+          parsedDate: date.toISOString(),
+          year, month, day
+        });
+        
+        return date.toISOString();
+      })(),
+      end: (() => {
+        // Convert date and time to ISO string
+        const [year, month, day] = eventData.date!.split('-').map(Number);
+        const date = new Date(year, month - 1, day);
+        
+        if (eventData.time) {
+          const [, endTime] = eventData.time.split(' - ');
+          const [hours, minutes] = endTime.split(':').map(Number);
+          date.setHours(hours, minutes, 0, 0);
+        } else {
+          // Default to 1 hour duration
+          date.setHours(date.getHours() + 1);
+        }
+        
+        return date.toISOString();
+      })(),
+      description: eventData.description,
+      location: eventData.location,
+      isAllDay: false,
+      repeat: eventData.repeat,
+    };
+    
+    console.log('Sending form event data to API:', eventFormData);
+    createFormEventMutation.mutate(eventFormData);
   };
 
   const handleEventClick = (event: UnifiedEvent) => {
@@ -396,7 +484,7 @@ export default function DashboardPage() {
       <EventForm
         isOpen={isEventFormOpen}
         onClose={() => setIsEventFormOpen(false)}
-        onEventParsed={handleVoiceEventParsed}
+        onEventParsed={handleFormEventParsed}
       />
 
       {/* Event Edit Modal */}
