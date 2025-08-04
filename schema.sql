@@ -49,6 +49,7 @@ CREATE TABLE IF NOT EXISTS events (
     apple_event_id TEXT,
     color TEXT,
     is_all_day BOOLEAN DEFAULT false,
+    repeat JSONB,
     created_at TIMESTAMPTZ DEFAULT now(),
     updated_at TIMESTAMPTZ DEFAULT now(),
     UNIQUE(user_id, google_event_id),

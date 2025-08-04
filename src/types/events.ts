@@ -1,3 +1,12 @@
+export interface RepeatOptions {
+  frequency: 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly';
+  interval?: number; // Every X days/weeks/months/years
+  endDate?: string; // ISO 8601 date string
+  endAfterOccurrences?: number;
+  daysOfWeek?: number[]; // For weekly: [0=Sunday, 1=Monday, etc.]
+  dayOfMonth?: number; // For monthly/yearly
+}
+
 export interface UnifiedEvent {
   id: string;
   provider: 'google' | 'outlook' | 'notion' | 'apple' | 'azure-ad';
@@ -13,6 +22,7 @@ export interface UnifiedEvent {
   color?: string;
   is_all_day?: boolean;
   attendees?: string[];
+  repeat?: RepeatOptions;
   created_at: string;
   updated_at: string;
 }
@@ -25,6 +35,7 @@ export interface CalendarProvider {
   isConnected: boolean;
   lastSync?: string;
   color: string;
+  accountEmail?: string;
 }
 
 export interface VoiceEventData {
@@ -35,6 +46,7 @@ export interface VoiceEventData {
   location?: string;
   description?: string;
   provider?: 'google' | 'outlook' | 'notion' | 'apple' | 'azure-ad';
+  repeat?: RepeatOptions;
 }
 
 export interface SyncStatus {

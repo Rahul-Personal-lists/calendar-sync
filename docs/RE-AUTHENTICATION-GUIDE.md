@@ -1,87 +1,134 @@
-# Re-authentication Guide
+# Google Re-Authentication Issue - Diagnosis & Fix
 
-## 🔍 **What's Happening**
+## The Problem
+You're having to log into Google every few hours, which indicates that refresh tokens are not being properly requested or stored.
 
-You're seeing this error because your Google account access has expired and needs to be refreshed. This is a common security feature with OAuth applications.
+## Root Causes & Solutions
 
-### **The Problem**
-- Your Google access token has expired
-- No refresh token is available to automatically renew it
-- The app can't create or delete events without valid credentials
+### 1. Google OAuth App Configuration
 
-### **The Solution**
-You need to re-authenticate with Google to get fresh credentials.
+**Check your Google Cloud Console settings:**
 
-## 🛠️ **How to Fix It**
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Select your project
+3. Go to "APIs & Services" > "Credentials"
+4. Find your OAuth 2.0 Client ID
+5. **Critical**: Make sure "Access type" is set to "Offline"
 
-### **Step 1: Sign Out**
-1. Click the "Sign Out" button in the top-right corner of the dashboard
-2. You'll be redirected to the sign-in page
+**If it's not set to "Offline":**
+- Edit your OAuth client
+- Set "Access type" to "Offline"
+- Save changes
+- **You'll need to re-authenticate after this change**
 
-### **Step 2: Sign In Again**
-1. Click "Sign in with Google"
-2. Grant the necessary permissions when prompted
-3. This will create fresh access and refresh tokens
+### 2. NextAuth Configuration (Fixed)
 
-### **Step 3: Test the Functionality**
-1. Try creating an event with voice input
-2. Try syncing your calendar
-3. Try deleting an event
+I've updated your NextAuth configuration to properly request refresh tokens:
 
-## 🔧 **Technical Details**
-
-### **Why This Happens**
-- Google OAuth tokens expire for security reasons
-- Refresh tokens allow automatic renewal without user intervention
-- If no refresh token is stored, manual re-authentication is required
-
-### **What We've Fixed**
-- ✅ Better error detection for expired tokens
-- ✅ Clear error messages explaining the issue
-- ✅ Automatic token refresh when possible
-- ✅ Graceful handling when refresh tokens are missing
-
-### **Prevention**
-- The app now stores refresh tokens properly
-- Future token expirations should be handled automatically
-- You shouldn't need to re-authenticate again unless you revoke access
-
-## 🚨 **If You Still Have Issues**
-
-### **Check Your Google Account**
-1. Go to [Google Account Settings](https://myaccount.google.com/)
-2. Navigate to "Security" > "Third-party apps with account access"
-3. Find this app and ensure it has the necessary permissions
-
-### **Clear Browser Data**
-1. Clear cookies and site data for localhost
-2. Try signing in again
-
-### **Contact Support**
-If the issue persists, check:
-- Browser console for error messages
-- Server logs for detailed debugging info
-- Ensure all environment variables are properly configured
-
-## 📝 **Environment Setup**
-
-Make sure your `.env.local` file has the correct Google OAuth credentials:
-
-```env
-GOOGLE_CLIENT_ID=your_google_client_id
-GOOGLE_CLIENT_SECRET=your_google_client_secret
-NEXTAUTH_SECRET=your_nextauth_secret
-NEXTAUTH_URL=http://localhost:3000
+```typescript
+GoogleProvider({
+  clientId: process.env.GOOGLE_CLIENT_ID!,
+  clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+  authorization: {
+    params: {
+      scope: 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events',
+      access_type: 'offline',  // ← This was missing
+      prompt: 'consent',       // ← This ensures refresh tokens
+    },
+  },
+}),
 ```
 
-## ✅ **Success Indicators**
+### 3. Testing Your Current Setup
 
-After re-authenticating, you should see:
-- ✅ Events sync successfully
-- ✅ Voice event creation works
-- ✅ Event deletion works
-- ✅ No more "needs re-authentication" errors
+Use these endpoints to diagnose the issue:
 
----
+#### Check Token Status
+```bash
+curl http://localhost:3000/api/debug-tokens
+```
 
-**Note**: This is a one-time fix. Once you re-authenticate, the app should handle future token renewals automatically. 
+#### Test Token Refresh
+```bash
+curl -X POST http://localhost:3000/api/test-token-refresh \
+  -H "Content-Type: application/json" \
+  -d '{"provider": "google"}'
+```
+
+### 4. Expected Behavior
+
+**With proper refresh tokens:**
+- Access tokens expire after 1 hour
+- Refresh tokens last much longer (can be revoked by user)
+- App automatically refreshes access tokens using refresh tokens
+- User stays logged in for weeks/months
+
+**Without refresh tokens:**
+- Access tokens expire after 1 hour
+- No way to get new access tokens without re-authentication
+- User must log in every hour
+
+### 5. Debugging Steps
+
+1. **Check if you have refresh tokens:**
+   ```bash
+   curl http://localhost:3000/api/debug-tokens
+   ```
+   Look for `hasRefreshToken: true` in the response.
+
+2. **If no refresh tokens:**
+   - Check Google Cloud Console settings (step 1)
+   - Re-authenticate with Google after fixing settings
+   - The `prompt: 'consent'` parameter forces Google to show the consent screen and provide refresh tokens
+
+3. **If you have refresh tokens but still having issues:**
+   - Test the refresh functionality
+   - Check the logs for token refresh errors
+
+### 6. Re-Authentication Process
+
+After fixing the configuration:
+
+1. **Sign out** of your app completely
+2. **Clear browser cookies** for your domain
+3. **Sign in again** with Google
+4. **Check the debug endpoint** to confirm refresh tokens are stored
+
+### 7. Google OAuth Best Practices
+
+- **Access type**: Always use "offline" for web apps
+- **Prompt**: Use "consent" for first-time users to ensure refresh tokens
+- **Scopes**: Only request the scopes you actually need
+- **Token storage**: Store refresh tokens securely (you're doing this correctly)
+
+### 8. Monitoring
+
+Add this to your dashboard to monitor token health:
+
+```typescript
+// In your dashboard component
+const checkTokenHealth = async () => {
+  const response = await fetch('/api/debug-tokens');
+  const data = await response.json();
+  
+  // Show warnings if tokens are expiring soon
+  // or if refresh tokens are missing
+};
+```
+
+## Quick Fix Checklist
+
+- [ ] Google Cloud Console: Access type = "Offline"
+- [ ] NextAuth config: `access_type: 'offline'` and `prompt: 'consent'`
+- [ ] Re-authenticate after configuration changes
+- [ ] Test with debug endpoints
+- [ ] Monitor token health in your app
+
+## Common Issues
+
+1. **"No refresh token available"** → Google OAuth app not configured for offline access
+2. **"Token refresh failed"** → Check Google Cloud Console credentials
+3. **"Unauthorized"** → Session expired, user needs to sign in again
+4. **"Database error"** → Check Supabase connection and table structure
+
+After implementing these fixes, you should only need to log in once and stay authenticated for weeks or months, with automatic token refresh happening in the background. 

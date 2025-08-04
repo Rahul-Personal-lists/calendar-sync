@@ -3,6 +3,7 @@
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import ProviderIcon from '@/components/ProviderIcon';
 
 export default function SignInPage() {
   const { data: session, status } = useSession();
@@ -39,9 +40,7 @@ export default function SignInPage() {
               onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
               className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="w-5 h-5 bg-blue-500 text-white rounded flex items-center justify-center text-sm font-bold">
-                G
-              </div>
+              <ProviderIcon provider="google" size={20} />
               <span>Continue with Google</span>
             </button>
 
@@ -49,10 +48,16 @@ export default function SignInPage() {
               onClick={() => signIn('azure-ad', { callbackUrl: '/dashboard' })}
               className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
             >
-              <div className="w-5 h-5 bg-blue-600 text-white rounded flex items-center justify-center text-sm font-bold">
-                O
-              </div>
+              <ProviderIcon provider="azure-ad" size={20} />
               <span>Continue with Outlook</span>
+            </button>
+
+            <button
+              onClick={() => signIn('notion', { callbackUrl: '/dashboard' })}
+              className="w-full flex items-center justify-center space-x-3 bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              <ProviderIcon provider="notion" size={20} />
+              <span>Continue with Notion</span>
             </button>
 
             <div className="text-center">

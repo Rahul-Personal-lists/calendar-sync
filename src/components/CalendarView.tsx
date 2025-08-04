@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { UnifiedEvent } from '@/types/events';
+import { getProviderDisplayName } from '@/lib/provider-utils';
 
 type CalendarViewType = 'day' | 'week' | 'month';
 
@@ -79,12 +80,31 @@ export default function CalendarView({
     return colors[provider] || 'bg-gray-500';
   };
 
+
+
   const getProviderColorStyle = (provider: UnifiedEvent['provider']) => {
     // Return inline style for custom colors
     if (userColors[provider]) {
       return { backgroundColor: userColors[provider] };
     }
     return {};
+  };
+
+  const isRecurringEvent = (event: UnifiedEvent) => {
+    return event.repeat && event.repeat.frequency !== 'none';
+  };
+
+  const getRepeatIcon = (event: UnifiedEvent) => {
+    if (!isRecurringEvent(event)) return null;
+    
+    const frequency = event.repeat?.frequency;
+    switch (frequency) {
+      case 'daily': return '🔄';
+      case 'weekly': return '📅';
+      case 'monthly': return '📆';
+      case 'yearly': return '🎯';
+      default: return '🔄';
+    }
   };
 
   const handleEditEvent = (event: UnifiedEvent) => {
@@ -132,9 +152,14 @@ export default function CalendarView({
                   e.stopPropagation();
                   onEventClick?.(event);
                 }}
-                title={`${event.title} (${event.provider})`}
+                title={`${event.title} (${getProviderDisplayName(event.provider)})${isRecurringEvent(event) ? ' - Recurring' : ''}`}
               >
-                {event.title}
+                <div className="flex items-center space-x-1">
+                  {getRepeatIcon(event) && (
+                    <span className="text-xs">{getRepeatIcon(event)}</span>
+                  )}
+                  <span className="truncate">{event.title}</span>
+                </div>
               </div>
             ))}
             {dayEvents.length > 3 && (
@@ -189,9 +214,14 @@ export default function CalendarView({
                   e.stopPropagation();
                   onEventClick?.(event);
                 }}
-                title={`${event.title} (${event.provider})`}
+                title={`${event.title} (${getProviderDisplayName(event.provider)})${isRecurringEvent(event) ? ' - Recurring' : ''}`}
               >
-                {event.title}
+                <div className="flex items-center space-x-1">
+                  {getRepeatIcon(event) && (
+                    <span className="text-xs">{getRepeatIcon(event)}</span>
+                  )}
+                  <span className="truncate">{event.title}</span>
+                </div>
               </div>
             ))}
             {dayEvents.length > 5 && (
@@ -236,7 +266,12 @@ export default function CalendarView({
                       className="flex-1"
                       onClick={() => onEventClick?.(event)}
                     >
-                      <div className="font-medium">{event.title}</div>
+                      <div className="font-medium flex items-center space-x-2">
+                        {getRepeatIcon(event) && (
+                          <span className="text-sm">{getRepeatIcon(event)}</span>
+                        )}
+                        <span>{event.title}</span>
+                      </div>
                       {event.start_time && (
                         <div className="text-sm opacity-90">
                           {new Date(event.start_time).toLocaleTimeString('en-US', { 

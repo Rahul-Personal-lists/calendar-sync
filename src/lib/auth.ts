@@ -22,6 +22,8 @@ export const authOptions: NextAuthOptions = {
       authorization: {
         params: {
           scope: 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events',
+          access_type: 'offline',
+          prompt: 'consent',
         },
       },
     }),
@@ -122,5 +124,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: 'jwt',
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
 }; 

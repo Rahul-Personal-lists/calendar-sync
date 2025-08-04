@@ -18,6 +18,14 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
     location: '',
     description: '',
     isAllDay: false,
+    repeat: {
+      frequency: 'none' as const,
+      interval: 1,
+      endDate: '',
+      endAfterOccurrences: 10,
+      daysOfWeek: [],
+      dayOfMonth: 1,
+    },
   });
 
   // Predefined time slots for end time
@@ -89,6 +97,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       time: formData.startTime && formData.endTime ? `${formData.startTime} - ${formData.endTime}` : undefined,
       location: formData.location || undefined,
       description: formData.description || undefined,
+      repeat: formData.repeat.frequency !== 'none' ? formData.repeat : undefined,
     };
 
     onEventParsed(eventData);
@@ -103,6 +112,14 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       location: '',
       description: '',
       isAllDay: false,
+      repeat: {
+        frequency: 'none' as const,
+        interval: 1,
+        endDate: '',
+        endAfterOccurrences: 10,
+        daysOfWeek: [],
+        dayOfMonth: 1,
+      },
     });
   };
 
@@ -117,6 +134,14 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
       location: '',
       description: '',
       isAllDay: false,
+      repeat: {
+        frequency: 'none' as const,
+        interval: 1,
+        endDate: '',
+        endAfterOccurrences: 10,
+        daysOfWeek: [],
+        dayOfMonth: 1,
+      },
     });
   };
 
@@ -264,6 +289,144 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter event description"
             />
+          </div>
+
+          {/* Repeat Options */}
+          <div className="border-t pt-4">
+            <div className="flex items-center justify-between mb-3">
+              <label className="block text-sm font-medium text-gray-700">
+                Repeat
+              </label>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({
+                  ...prev,
+                  repeat: {
+                    ...prev.repeat,
+                    frequency: prev.repeat.frequency === 'none' ? 'daily' : 'none'
+                  }
+                }))}
+                className="text-sm text-blue-600 hover:text-blue-800"
+              >
+                {formData.repeat.frequency === 'none' ? 'Add repeat' : 'Remove repeat'}
+              </button>
+            </div>
+            
+            {formData.repeat.frequency !== 'none' && (
+              <div className="space-y-3 bg-gray-50 p-3 rounded-md">
+                {/* Frequency */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Frequency
+                  </label>
+                  <select
+                    value={formData.repeat.frequency}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      repeat: { ...prev.repeat, frequency: e.target.value as any }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                    <option value="yearly">Yearly</option>
+                  </select>
+                </div>
+
+                {/* Interval */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Every
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="number"
+                      min="1"
+                      max="99"
+                      value={formData.repeat.interval}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        repeat: { ...prev.repeat, interval: parseInt(e.target.value) || 1 }
+                      }))}
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-600">
+                      {formData.repeat.frequency === 'daily' && 'day(s)'}
+                      {formData.repeat.frequency === 'weekly' && 'week(s)'}
+                      {formData.repeat.frequency === 'monthly' && 'month(s)'}
+                      {formData.repeat.frequency === 'yearly' && 'year(s)'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Days of Week for Weekly */}
+                {formData.repeat.frequency === 'weekly' && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Days of Week
+                    </label>
+                    <div className="grid grid-cols-7 gap-1">
+                      {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, index) => (
+                        <label key={day} className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            checked={formData.repeat.daysOfWeek.includes(index)}
+                            onChange={(e) => {
+                              const newDays = e.target.checked
+                                ? [...formData.repeat.daysOfWeek, index]
+                                : formData.repeat.daysOfWeek.filter(d => d !== index);
+                              setFormData(prev => ({
+                                ...prev,
+                                repeat: { ...prev.repeat, daysOfWeek: newDays }
+                              }));
+                            }}
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                          <span className="ml-1 text-xs">{day}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Day of Month for Monthly/Yearly */}
+                {(formData.repeat.frequency === 'monthly' || formData.repeat.frequency === 'yearly') && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Day of Month
+                    </label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      value={formData.repeat.dayOfMonth}
+                      onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        repeat: { ...prev.repeat, dayOfMonth: parseInt(e.target.value) || 1 }
+                      }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                )}
+
+                {/* End Date */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    End Date (Optional)
+                  </label>
+                  <input
+                    type="date"
+                    value={formData.repeat.endDate}
+                    onChange={(e) => setFormData(prev => ({
+                      ...prev,
+                      repeat: { ...prev.repeat, endDate: e.target.value }
+                    }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}

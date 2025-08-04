@@ -57,6 +57,7 @@ export async function GET(request: NextRequest) {
           google_event_id: event.google_event_id,
           color: event.color,
           is_all_day: event.is_all_day || false,
+          repeat: event.repeat,
         })),
         { onConflict: 'user_id,google_event_id' }
       );
@@ -114,7 +115,7 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     console.log('Creating event with data:', body);
-    const { title, start, end, description, location, isAllDay } = body;
+    const { title, start, end, description, location, isAllDay, repeat } = body;
 
     // Check if re-authentication is needed
     const needsReAuth = await needsReAuthentication(session.user.email, 'google');
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
       description,
       location,
       is_all_day: isAllDay,
+      repeat,
     });
 
     // Store in database
@@ -166,6 +168,7 @@ export async function POST(request: NextRequest) {
         google_event_id: unifiedEvent.google_event_id,
         color: unifiedEvent.color,
         is_all_day: unifiedEvent.is_all_day || false,
+        repeat: repeat,
       });
 
     if (insertError) {

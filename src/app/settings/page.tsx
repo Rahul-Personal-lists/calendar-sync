@@ -6,6 +6,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarProvider } from '@/types/events';
 import ColorPicker from '@/components/ColorPicker';
 import { useColors } from '@/components/ColorContext';
+import ProviderIcon from '@/components/ProviderIcon';
+import { getProviderAccountEmail } from '@/lib/provider-utils';
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -129,6 +131,8 @@ export default function SettingsPage() {
         }
       }
 
+
+
       setMessage({ type: 'success', text: 'All colors saved and events updated successfully!' });
       setHasUnsavedChanges(false);
       // Invalidate events query to refresh the calendar
@@ -243,17 +247,12 @@ export default function SettingsPage() {
                     className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
                   >
                     <div className="flex items-center space-x-3">
-                      <div
-                        className="w-10 h-10 rounded-full flex items-center justify-center text-white font-semibold"
-                        style={{ backgroundColor: provider.color }}
-                      >
-                        {provider.icon}
-                      </div>
+                      <ProviderIcon provider={provider.name} size={32} />
                       <div>
                         <div className="font-medium">{provider.displayName}</div>
                         <div className="text-sm text-gray-500">
                           {getConnectionStatus(provider.name) || 
-                           (provider.isConnected ? `Connected (${session?.user?.email})` : 'Not connected')}
+                           (provider.isConnected ? `Connected (${getProviderAccountEmail(provider.name, session?.user?.email || '')})` : 'Not connected')}
                         </div>
                       </div>
                     </div>
@@ -329,12 +328,7 @@ export default function SettingsPage() {
                 {providerConfigs.map((provider) => (
                   <div key={provider.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <div
-                        className="w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold"
-                        style={{ backgroundColor: userColors[provider.name] || provider.color }}
-                      >
-                        {provider.icon}
-                      </div>
+                      <ProviderIcon provider={provider.name} size={24} />
                       <div>
                         <div className="font-medium">{provider.displayName}</div>
                         <div className="text-sm text-gray-500">

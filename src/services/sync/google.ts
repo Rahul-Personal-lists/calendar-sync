@@ -113,17 +113,62 @@ function getGoogleColor(colorId: string): string {
   return colors[colorId] || '#4285f4'; // Default Google blue
 }
 
+function convertRepeatToGoogleRecurrence(repeat: any): string[] {
+  const rules: string[] = [];
+  
+  // Build the RRULE based on frequency
+  let rrule = `FREQ=${repeat.frequency.toUpperCase()}`;
+  
+  // Add interval if not 1
+  if (repeat.interval && repeat.interval > 1) {
+    rrule += `;INTERVAL=${repeat.interval}`;
+  }
+  
+  // Add specific days for weekly recurrence
+  if (repeat.frequency === 'weekly' && repeat.daysOfWeek && repeat.daysOfWeek.length > 0) {
+    const dayNames = ['SU', 'MO', 'TU', 'WE', 'TH', 'FR', 'SA'];
+    const days = repeat.daysOfWeek.map((day: number) => dayNames[day]).join(',');
+    rrule += `;BYDAY=${days}`;
+  }
+  
+  // Add day of month for monthly/yearly recurrence
+  if ((repeat.frequency === 'monthly' || repeat.frequency === 'yearly') && repeat.dayOfMonth) {
+    rrule += `;BYMONTHDAY=${repeat.dayOfMonth}`;
+  }
+  
+  // Add end date if specified
+  if (repeat.endDate) {
+    const endDate = new Date(repeat.endDate);
+    endDate.setDate(endDate.getDate() + 1); // Google uses exclusive end date
+    rrule += `;UNTIL=${endDate.toISOString().slice(0, 10).replace(/-/g, '')}`;
+  }
+  
+  // Add count if specified
+  if (repeat.endAfterOccurrences && repeat.endAfterOccurrences > 0) {
+    rrule += `;COUNT=${repeat.endAfterOccurrences}`;
+  }
+  
+  rules.push(`RRULE:${rrule}`);
+  
+  return rules;
+}
+
 export async function createGoogleEvent(
   accessToken: string,
-  event: Omit<UnifiedEvent, 'id' | 'provider' | 'google_event_id' | 'created_at' | 'updated_at'>
+  event: Omit<UnifiedEvent, 'id' | 'provider' | 'google_event_id' | 'created_at' | 'updated_at'> & { repeat?: any }
 ): Promise<GoogleCalendarEvent> {
-  const googleEvent = {
+  const googleEvent: any = {
     summary: event.title,
     description: event.description,
     start: event.is_all_day ? { date: event.start_time } : { dateTime: event.start_time },
     end: event.is_all_day ? { date: event.end_time } : { dateTime: event.end_time },
     location: event.location,
   };
+
+  // Add recurrence if specified
+  if (event.repeat && event.repeat.frequency !== 'none') {
+    googleEvent.recurrence = convertRepeatToGoogleRecurrence(event.repeat);
+  }
 
   console.log('Creating Google event with data:', {
     ...googleEvent,
@@ -211,7 +256,7 @@ export async function deleteGoogleEvent(
 
 export async function updateGoogleEvent(
   googleEventId: string,
-  updateData: Partial<UnifiedEvent>,
+  updateData: Partial<UnifiedEvent> & { repeat?: any },
   userEmail: string
 ): Promise<GoogleCalendarEvent> {
   // Get a valid access token (with refresh if needed)
@@ -226,13 +271,18 @@ export async function updateGoogleEvent(
   console.log('Updating Google event:', googleEventId, 'with data:', updateData);
 
   // Convert our event data to Google Calendar format
-  const googleEvent = {
+  const googleEvent: any = {
     summary: updateData.title,
     description: updateData.description,
     start: updateData.is_all_day ? { date: updateData.start_time } : { dateTime: updateData.start_time },
     end: updateData.is_all_day ? { date: updateData.end_time } : { dateTime: updateData.end_time },
     location: updateData.location,
   };
+
+  // Add recurrence if specified
+  if (updateData.repeat && updateData.repeat.frequency !== 'none') {
+    googleEvent.recurrence = convertRepeatToGoogleRecurrence(updateData.repeat);
+  }
 
   const response = await fetch(
     `https://www.googleapis.com/calendar/v3/calendars/primary/events/${googleEventId}`,
