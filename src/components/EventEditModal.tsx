@@ -267,7 +267,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                       name="provider"
                       value={provider.name}
                       checked={formData.provider === provider.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, provider: e.target.value as any }))}
+                      onChange={(e) => setFormData(prev => ({ ...prev, provider: e.target.value as 'google' | 'outlook' | 'notion' | 'apple' | 'azure-ad' }))}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
                     />
                     <ProviderIcon provider={provider.name} size={20} />
@@ -409,7 +409,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     value={formData.repeat.frequency}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      repeat: { ...prev.repeat, frequency: e.target.value as any }
+                      repeat: { ...prev.repeat, frequency: e.target.value as 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' }
                     }))}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   >

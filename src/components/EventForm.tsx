@@ -327,7 +327,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               value={formData.repeat.frequency}
               onChange={(e) => setFormData(prev => ({
                 ...prev,
-                repeat: { ...prev.repeat, frequency: e.target.value }
+                repeat: { ...prev.repeat, frequency: e.target.value as 'none' | 'daily' | 'weekly' | 'monthly' | 'yearly' }
               }))}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             >
