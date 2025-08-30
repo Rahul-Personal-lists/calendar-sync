@@ -411,50 +411,50 @@ export default function DashboardPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
               <h2 className="text-lg font-semibold mb-4 text-gray-900">Quick Actions</h2>
               
-              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-2 sm:gap-3">
                 <button
                   onClick={() => setIsEventFormOpen(true)}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Add Event"
                 >
-                  <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-lg sm:text-xl mb-1 sm:mb-2">
                     ➕
                   </div>
-                  <span className="text-sm font-medium text-center text-gray-700">Event</span>
+                  <span className="text-xs sm:text-sm font-medium text-center text-gray-700">Event</span>
                 </button>
                 
                 <button
                   onClick={() => setIsVoiceModalOpen(true)}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Voice Input"
                 >
-                  <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-lg sm:text-xl mb-1 sm:mb-2">
                     🎤
                   </div>
-                  <span className="text-sm font-medium text-center text-gray-700">Voice</span>
+                  <span className="text-xs sm:text-sm font-medium text-center text-gray-700">Voice</span>
                 </button>
                 
                 <button
                   onClick={() => syncMutation.mutate()}
                   disabled={isSyncing}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 transition-colors"
+                  className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   title="Sync Calendars"
                 >
-                  <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-lg sm:text-xl mb-1 sm:mb-2">
                     🔄
                   </div>
-                  <span className="text-sm font-medium text-center text-gray-700">Sync</span>
+                  <span className="text-xs sm:text-sm font-medium text-center text-gray-700">Sync</span>
                 </button>
                 
                 <a
                   href="/settings"
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
+                  className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Settings"
                 >
-                  <div className="w-12 h-12 bg-gray-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
+                  <div className="w-8 h-8 sm:w-12 sm:h-12 bg-gray-500 text-white rounded-full flex items-center justify-center text-lg sm:text-xl mb-1 sm:mb-2">
                     ⚙️
                   </div>
-                  <span className="text-sm font-medium text-center text-gray-700">Settings</span>
+                  <span className="text-xs sm:text-sm font-medium text-center text-gray-700">Settings</span>
                 </a>
               </div>
             </div>

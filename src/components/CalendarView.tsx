@@ -655,18 +655,13 @@ export default function CalendarView({
                 </button>
               </div>
               {selectedCalendar && (
-                <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-500">
-                    ({filteredEvents.length} events)
-                  </span>
-                  <button
-                    onClick={() => setSelectedCalendar(null)}
-                    className="text-xs text-blue-600 hover:text-blue-800"
-                    title="Show all calendars"
-                  >
-                    Clear
-                  </button>
-                </div>
+                <button
+                  onClick={() => setSelectedCalendar(null)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                  title="Show all calendars"
+                >
+                  Clear
+                </button>
               )}
             </div>
           </div>
