@@ -529,42 +529,42 @@ export default function CalendarView({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow" key={colorKey}>
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" key={colorKey}>
       {/* Calendar Header */}
-      <div className="flex items-center justify-between p-4 border-b">
-        <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-100">
+        <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-0">
           <div className="flex flex-col items-center space-y-2">
             <div className="flex items-center space-x-2">
               <button
                 onClick={goToPreviousPeriod}
-                className="p-2 hover:bg-gray-100 rounded text-lg font-bold"
+                className="p-2 hover:bg-gray-100 rounded text-lg font-bold transition-colors"
               >
                 ‹
               </button>
-              <h2 className="text-lg font-semibold">{getViewTitle()}</h2>
+              <h2 className="text-lg font-semibold text-gray-900">{getViewTitle()}</h2>
               <button
                 onClick={goToNextPeriod}
-                className="p-2 hover:bg-gray-100 rounded text-lg font-bold"
+                className="p-2 hover:bg-gray-100 rounded text-lg font-bold transition-colors"
               >
                 ›
               </button>
             </div>
             <button
               onClick={goToToday}
-              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             >
               Today
             </button>
           </div>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col items-center space-y-3">
           {/* View Type Selector */}
           <div className="flex flex-col items-center space-y-2">
             <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
               <button
                 onClick={() => setViewType('day')}
-                className={`px-3 py-1 text-sm rounded ${
+                className={`px-3 py-1 text-sm rounded transition-colors ${
                   viewType === 'day' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -574,7 +574,7 @@ export default function CalendarView({
               </button>
               <button
                 onClick={() => setViewType('week')}
-                className={`px-3 py-1 text-sm rounded ${
+                className={`px-3 py-1 text-sm rounded transition-colors ${
                   viewType === 'week' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -584,7 +584,7 @@ export default function CalendarView({
               </button>
               <button
                 onClick={() => setViewType('month')}
-                className={`px-3 py-1 text-sm rounded ${
+                className={`px-3 py-1 text-sm rounded transition-colors ${
                   viewType === 'month' 
                     ? 'bg-white text-gray-900 shadow-sm' 
                     : 'text-gray-600 hover:text-gray-900'
@@ -648,8 +648,8 @@ export default function CalendarView({
 
       {/* Selected Date Events */}
       {selectedDate && viewType !== 'day' && (
-        <div className="border-t p-4">
-          <h3 className="font-semibold mb-3">
+        <div className="border-t border-gray-100 p-4">
+          <h3 className="font-semibold mb-3 text-gray-900">
             {selectedDate.toLocaleDateString('en-US', { 
               weekday: 'long', 
               year: 'numeric', 
@@ -661,7 +661,7 @@ export default function CalendarView({
             {getEventsForDate(selectedDate).map(event => (
               <div
                 key={event.id}
-                className={`p-3 rounded-lg cursor-pointer text-white group ${
+                className={`p-3 rounded-lg cursor-pointer text-white group transition-colors ${
                   userColors[event.provider] ? '' : getProviderColor(event.provider)
                 }`}
                 style={getProviderColorStyle(event.provider)}

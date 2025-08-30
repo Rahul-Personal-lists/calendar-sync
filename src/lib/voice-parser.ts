@@ -14,14 +14,29 @@ export function parseVoiceToEvent(text: string): ParsedEvent | null {
   
   // Extract event type and details using regex patterns similar to the Python script
   const patterns = [
+    // NEW: Pattern for [event] in [month day] at [time] - FIXED TITLE EXTRACTION (MOST SPECIFIC FIRST)
+    /([a-z]+(?:\s+[a-z]+)*)\s+in\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*,\s*\d{4})?)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i,
+    
+    // NEW: Pattern for [event] on [month day] at [time] - FIXED ORDER
+    /([a-z]+(?:\s+[a-z]+)*)\s+on\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*,\s*\d{4})?)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i,
+    
+    // NEW: Pattern for [event] [month day] at [time] (without "on") - FIXED ORDER
+    /([a-z]+(?:\s+[a-z]+)*)\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*,\s*\d{4})?)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i,
+    
+    // NEW: Pattern for [event] at [time] on [month day] - FIXED ORDER
+    /([a-z]+(?:\s+[a-z]+)*)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))\s+on\s+(\w+\s+\d{1,2}(?:st|nd|rd|th)?(?:\s*,\s*\d{4})?)/i,
+    
+    // NEW: Pattern for [event] on [day name] at [time] - FIXED ORDER
+    /([a-z]+(?:\s+[a-z]+)*)\s+on\s+(monday|tuesday|wednesday|thursday|friday|saturday|sunday)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i,
+    
     // Pattern: [event] at [time] [date]
     /(meeting|call|appointment|coffee|lunch|dinner|event)\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))(?:\s+(?:on|this|next|)?\s*)?(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i,
     
     // Pattern: [event] [date] at [time]
     /(meeting|call|appointment|coffee|lunch|dinner|event)\s+(tomorrow|today|next\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|(?:this\s+)?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))(?:\s+at\s+)(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i,
     
-    // Pattern: [any word] at [time] [date]
-    /([a-z]+(?:\s+[a-z]+){0,3})\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))(?:\s+(?:on|this|next|)?\s*)?(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)/i,
+    // Pattern: [any word] at [time] [date] (but not if it contains "in" followed by month)
+    /([a-z]+(?:\s+[a-z]+){0,3})\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))(?:\s+(?:on|this|next|)?\s*)?(tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday)(?!\s+in\s+\w+)/i,
     
     // Pattern: [event] [date] at [time] (alternative order)
     /(meeting|call|appointment|coffee|lunch|dinner|event)\s+(tomorrow|today|next\s+(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday)|(?:this\s+)?(?:monday|tuesday|wednesday|thursday|friday|saturday|sunday))\s+at\s+(\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.))/i
@@ -36,18 +51,45 @@ export function parseVoiceToEvent(text: string): ParsedEvent | null {
       let timeStr: string;
       let dateStr: string;
       
-      if (match.length === 4) {
-        eventType = match[1];
-        timeStr = match[2];
-        dateStr = match[3];
-      } else if (match.length === 3) {
-        // Handle case where date comes before time
+      // Determine the pattern type based on the regex
+      const patternStr = pattern.toString();
+      
+      if (patternStr.includes('\\s+on\\s+') && patternStr.includes('\\s+at\\s+')) {
+        // Pattern: [event] on [date] at [time]
         eventType = match[1];
         dateStr = match[2];
         timeStr = match[3];
+      } else if (patternStr.includes('\\s+in\\s+') && patternStr.includes('\\s+at\\s+')) {
+        // Pattern: [event] in [date] at [time]
+        eventType = match[1];
+        dateStr = match[2];
+        timeStr = match[3];
+      } else if (patternStr.includes('\\s+at\\s+') && patternStr.includes('\\s+on\\s+')) {
+        // Pattern: [event] at [time] on [date]
+        eventType = match[1];
+        timeStr = match[2];
+        dateStr = match[3];
+      } else if (patternStr.includes('\\s+at\\s+') && !patternStr.includes('\\s+on\\s+')) {
+        // Pattern: [event] at [time] [date] or [event] [date] at [time]
+        if (match[2].match(/\d{1,2}(?::\d{2})?\s*(?:am|pm|a\.m\.|p\.m\.|AM|PM|A\.M\.|P\.M\.)/i)) {
+          // [event] at [time] [date]
+          eventType = match[1];
+          timeStr = match[2];
+          dateStr = match[3];
+        } else {
+          // [event] [date] at [time]
+          eventType = match[1];
+          dateStr = match[2];
+          timeStr = match[3];
+        }
       } else {
-        continue;
+        // Default fallback
+        eventType = match[1];
+        timeStr = match[2];
+        dateStr = match[3];
       }
+      
+      console.log('Extracted:', { eventType, timeStr, dateStr });
       
       // Parse the time
       const parsedTime = parseTime(timeStr);
@@ -73,9 +115,14 @@ export function parseVoiceToEvent(text: string): ParsedEvent | null {
       console.log('Event datetime (local):', eventDateTime.toLocaleString());
       console.log('Event datetime (ISO):', eventDateTime.toISOString());
       
-      // Extract location if present
+      // Extract location if present (but not if it's a date)
       const locationMatch = lowerText.match(/(?:at|in)\s+([^,]+?)(?:\s+(?:on|at|tomorrow|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d|january|february|march|april|may|june|july|august|september|october|november|december))/i);
-      const location = locationMatch ? locationMatch[1].trim() : undefined;
+      let location = locationMatch ? locationMatch[1].trim() : undefined;
+      
+      // Don't use location if it's actually a date or part of the date string
+      if (location && (parseRelativeDate(location) || dateStr.includes(location))) {
+        location = undefined;
+      }
       
       // Create description with parsed details
       const description = [];
@@ -83,8 +130,12 @@ export function parseVoiceToEvent(text: string): ParsedEvent | null {
       if (timeStr) description.push(`Time: ${timeStr}`);
       if (location) description.push(`Location: ${location}`);
       
+      // Clean up the title - remove "in", "on", "at" from the end
+      let cleanTitle = eventType.charAt(0).toUpperCase() + eventType.slice(1);
+      cleanTitle = cleanTitle.replace(/\s+(in|on|at)$/i, '');
+      
       const result = {
-        title: eventType.charAt(0).toUpperCase() + eventType.slice(1),
+        title: cleanTitle,
         start: eventDateTime,
         end: endDateTime,
         description: description.length > 0 ? description.join(', ') : undefined,
@@ -160,6 +211,44 @@ function parseRelativeDate(dateStr: string): Date | null {
     return today;
   }
   
+  // Handle month names with day numbers (e.g., "August 15", "Dec 25")
+  const monthNames: Record<string, number> = {
+    'january': 0, 'jan': 0,
+    'february': 1, 'feb': 1,
+    'march': 2, 'mar': 2,
+    'april': 3, 'apr': 3,
+    'may': 4,
+    'june': 5, 'jun': 5,
+    'july': 6, 'jul': 6,
+    'august': 7, 'aug': 7,
+    'september': 8, 'sep': 8, 'sept': 8,
+    'october': 9, 'oct': 9,
+    'november': 10, 'nov': 10,
+    'december': 11, 'dec': 11
+  };
+  
+  // Pattern for "Month Day" or "Month Day, Year" (with optional ordinal)
+  const monthDayPattern = /^(\w+)\s+(\d{1,2})(?:st|nd|rd|th)?(?:\s*,\s*(\d{4}))?$/;
+  const match = lowerDate.match(monthDayPattern);
+  
+  if (match) {
+    const monthName = match[1].toLowerCase();
+    const day = parseInt(match[2]);
+    const year = match[3] ? parseInt(match[3]) : today.getFullYear();
+    
+    if (monthNames[monthName] !== undefined) {
+      const month = monthNames[monthName];
+      const targetDate = new Date(year, month, day);
+      
+      // If no year specified and the date has passed this year, assume next year
+      if (!match[3] && targetDate < today) {
+        targetDate.setFullYear(year + 1);
+      }
+      
+      return targetDate;
+    }
+  }
+  
   // Handle day names
   const days = {
     'monday': 1, 'tuesday': 2, 'wednesday': 3, 'thursday': 4,
@@ -196,6 +285,40 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
   isAllDay: boolean;
   repeat?: any;
 } {
+  // If we have a properly formatted date (YYYY-MM-DD), use it directly
+  if (voiceData.date && voiceData.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = voiceData.date.split('-').map(Number);
+    let start = new Date(year, month - 1, day); // month is 0-indexed
+    
+    // If we also have a time, parse it and set the time
+    if (voiceData.time) {
+      const timeMatch = voiceData.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+      if (timeMatch) {
+        let hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+        const period = timeMatch[3].toUpperCase();
+        
+        if (period === 'PM' && hours !== 12) hours += 12;
+        if (period === 'AM' && hours === 12) hours = 0;
+        
+        start.setHours(hours, minutes, 0, 0);
+      }
+    }
+    
+    const end = new Date(start.getTime() + 60 * 60 * 1000); // 1 hour default
+    
+    return {
+      title: voiceData.title,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      description: voiceData.description,
+      location: voiceData.location,
+      isAllDay: false,
+      repeat: voiceData.repeat,
+    };
+  }
+  
+  // Fallback: try to re-parse the voice input
   const parsedEvent = parseVoiceToEvent(`${voiceData.title} ${voiceData.time || ''} ${voiceData.date || ''}`);
   
   if (parsedEvent) {
@@ -210,7 +333,7 @@ export function convertVoiceDataToEventData(voiceData: VoiceEventData): {
     };
   }
   
-  // Fallback to original logic if parsing fails
+  // Final fallback to original logic if parsing fails
   let start: Date;
   let end: Date;
   

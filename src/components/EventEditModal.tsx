@@ -218,13 +218,13 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
   if (!isOpen || !event) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Edit Event</h3>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
           >
             ✕
           </button>
@@ -242,7 +242,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter event title"
               required
             />
@@ -274,7 +274,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                   </label>
                 ))}
                 {providers.filter(p => p.isConnected).length === 0 && (
-                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-md">
+                  <div className="text-sm text-gray-500 bg-gray-50 p-3 rounded-lg">
                     No calendars connected. Please connect a calendar in Settings first.
                   </div>
                 )}
@@ -308,14 +308,14 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               required
             />
           </div>
 
           {/* Time Fields - Only show if not all day */}
           {!formData.isAllDay && (
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 mb-1">
                   Start Time
@@ -326,7 +326,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                   name="startTime"
                   value={formData.startTime}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 />
               </div>
               <div>
@@ -339,7 +339,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                   name="endTime"
                   value={formData.endTime}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 />
               </div>
             </div>
@@ -356,7 +356,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
               name="location"
               value={formData.location}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter location"
             />
           </div>
@@ -372,13 +372,13 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
               value={formData.description}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter event description"
             />
           </div>
 
           {/* Repeat Options */}
-          <div className="border-t pt-4">
+          <div className="border-t border-gray-200 pt-4">
             <div className="flex items-center justify-between mb-3">
               <label className="block text-sm font-medium text-gray-700">
                 Repeat
@@ -392,14 +392,14 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     frequency: prev.repeat.frequency === 'none' ? 'daily' : 'none'
                   }
                 }))}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
               >
                 {formData.repeat.frequency === 'none' ? 'Add repeat' : 'Remove repeat'}
               </button>
             </div>
             
             {formData.repeat.frequency !== 'none' && (
-              <div className="space-y-3 bg-gray-50 p-3 rounded-md">
+              <div className="space-y-3 bg-gray-50 p-3 rounded-lg border border-gray-200">
                 {/* Frequency */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -411,7 +411,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                       ...prev,
                       repeat: { ...prev.repeat, frequency: e.target.value as any }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   >
                     <option value="daily">Daily</option>
                     <option value="weekly">Weekly</option>
@@ -435,7 +435,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                         ...prev,
                         repeat: { ...prev.repeat, interval: parseInt(e.target.value) || 1 }
                       }))}
-                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                     />
                     <span className="text-sm text-gray-600">
                       {formData.repeat.frequency === 'daily' && 'day(s)'}
@@ -483,7 +483,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Day of Month
                     </label>
-                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
                       {(() => {
                         // Extract day from selected date
                         const [year, month, day] = formData.date.split('-').map(Number);
@@ -508,7 +508,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                       ...prev,
                       repeat: { ...prev.repeat, endDate: e.target.value }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                     required
                   />
                 </div>
@@ -518,38 +518,40 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
-            {onDelete && (
-              <button
-                type="button"
-                onClick={() => setShowDeleteConfirm(true)}
-                disabled={isSubmitting || isDeleting}
-                className="flex-1 px-4 py-2 text-red-700 bg-red-100 border border-red-300 rounded-md hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
-              >
-                Delete
-              </button>
-            )}
             <button
               type="button"
               onClick={handleCancel}
-              disabled={isSubmitting || isDeleting}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              disabled={isSubmitting || isDeleting}
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
+              disabled={isSubmitting}
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors disabled:opacity-50"
             >
-              {isSubmitting ? 'Saving...' : 'Save'}
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
+
+          {/* Delete Button */}
+          {onDelete && (
+            <div className="pt-4 border-t border-gray-200">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(true)}
+                className="w-full px-4 py-2 text-red-600 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+              >
+                Delete Event
+              </button>
+            </div>
+          )}
         </form>
 
         {/* Delete Confirmation Modal */}
         {showDeleteConfirm && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-60" onClick={(e) => e.target === e.currentTarget && setShowDeleteConfirm(false)}>
-            <div className="bg-white rounded-lg p-6 max-w-sm w-full mx-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl p-4 sm:p-6 max-w-sm w-full mx-4">
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Delete Event</h4>
               
               {/* Check if this is a recurring event */}
@@ -562,7 +564,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <button
                       onClick={() => setDeleteScope('single')}
                       disabled={isDeleting}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                         deleteScope === 'single'
                           ? 'bg-blue-100 text-blue-700 border border-blue-300'
                           : 'hover:bg-gray-50 text-gray-700'
@@ -574,7 +576,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <button
                       onClick={() => setDeleteScope('following')}
                       disabled={isDeleting}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                         deleteScope === 'following'
                           ? 'bg-blue-100 text-blue-700 border border-blue-300'
                           : 'hover:bg-gray-50 text-gray-700'
@@ -586,7 +588,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <button
                       onClick={() => setDeleteScope('series')}
                       disabled={isDeleting}
-                      className={`w-full text-left px-3 py-2 rounded-md transition-colors ${
+                      className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
                         deleteScope === 'series'
                           ? 'bg-blue-100 text-blue-700 border border-blue-300'
                           : 'hover:bg-gray-50 text-gray-700'
@@ -603,14 +605,14 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                         setDeleteScope(null);
                       }}
                       disabled={isDeleting}
-                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
                     <button
                       onClick={handleDelete}
                       disabled={isDeleting || !deleteScope}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
                     >
                       {isDeleting ? 'Deleting...' : 'Delete'}
                     </button>
@@ -625,7 +627,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <button
                       onClick={() => setShowDeleteConfirm(false)}
                       disabled={isDeleting}
-                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
+                      className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors disabled:opacity-50"
                     >
                       Cancel
                     </button>
@@ -635,7 +637,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                         handleDelete();
                       }}
                       disabled={isDeleting}
-                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
+                      className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors disabled:opacity-50"
                     >
                       {isDeleting ? 'Deleting...' : 'Delete'}
                     </button>

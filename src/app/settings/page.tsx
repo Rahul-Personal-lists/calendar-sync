@@ -47,8 +47,6 @@ export default function SettingsPage() {
     enabled: !!session,
   });
 
-
-
   // Connect provider mutation
   const connectMutation = useMutation({
     mutationFn: async (provider: string) => {
@@ -131,8 +129,6 @@ export default function SettingsPage() {
         }
       }
 
-
-
       setMessage({ type: 'success', text: 'All colors saved and events updated successfully!' });
       setHasUnsavedChanges(false);
       // Invalidate events query to refresh the calendar
@@ -173,70 +169,78 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center">
-              <a href="/dashboard" className="mr-4 text-gray-400 hover:text-gray-600">
-                ←
-              </a>
-              <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
-            </div>
+      {/* Mobile-optimized Header */}
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="px-4 py-4">
+          <div className="flex items-center">
+            <a 
+              href="/dashboard" 
+              className="mr-4 text-gray-600 hover:text-gray-800 p-2 -ml-2 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </a>
+            <h1 className="text-xl font-semibold text-gray-900">Settings</h1>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Main Content - Mobile-first layout */}
+      <main className="px-4 py-6 space-y-6">
         {/* Message Display */}
         {message && (
-          <div className={`mb-4 p-4 rounded-lg ${
+          <div className={`p-4 rounded-lg ${
             message.type === 'success' 
               ? 'bg-green-100 border border-green-400 text-green-700' 
               : 'bg-red-100 border border-red-400 text-red-700'
           }`}>
-            {message.text}
-            <button 
-              onClick={() => setMessage(null)}
-              className="float-right font-bold text-lg"
-            >
-              ×
-            </button>
+            <div className="flex items-start justify-between">
+              <span className="flex-1">{message.text}</span>
+              <button 
+                onClick={() => setMessage(null)}
+                className="ml-3 text-lg font-bold hover:text-gray-800 transition-colors"
+              >
+                ×
+              </button>
+            </div>
           </div>
         )}
         
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4 border-b">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-lg font-semibold">Calendar Connections</h2>
+        {/* Calendar Connections Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-4 py-4 border-b border-gray-100">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="flex-1">
+                <h2 className="text-lg font-semibold text-gray-900">Calendar Connections</h2>
                 <p className="text-sm text-gray-600 mt-1">
                   Connect multiple calendar accounts to sync events across all platforms
                 </p>
               </div>
-              <div className="text-right">
-                <div className="text-2xl font-bold text-blue-600">
-                  {providers.filter((p: any) => p.provider).length}
+              <div className="flex items-center justify-center sm:justify-end">
+                <div className="bg-blue-50 rounded-full px-4 py-2">
+                  <div className="text-xl font-bold text-blue-600">
+                    {providers.filter((p: any) => p.provider).length}
+                  </div>
+                  <div className="text-xs text-blue-600 font-medium">Connected</div>
                 </div>
-                <div className="text-xs text-gray-500">Connected</div>
               </div>
             </div>
           </div>
 
-          <div className="p-6">
+          <div className="p-4">
             {isLoading ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
                 <p className="mt-2 text-gray-600">Loading...</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {providers.length === 0 && (
                   <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                     <div className="text-gray-400 text-4xl mb-2">📅</div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">No calendars connected</h3>
-                    <p className="text-gray-600 mb-4">
+                    <p className="text-gray-600 mb-4 px-4">
                       Connect your first calendar to start syncing events across all your accounts
                     </p>
                   </div>
@@ -244,37 +248,40 @@ export default function SettingsPage() {
                 {providerConfigs.map((provider) => (
                   <div
                     key={provider.id}
-                    className="flex items-center justify-between p-4 border border-gray-200 rounded-lg"
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
                   >
-                    <div className="flex items-center space-x-3">
-                      <ProviderIcon provider={provider.name} size={32} />
-                      <div>
-                        <div className="font-medium">{provider.displayName}</div>
-                        <div className="text-sm text-gray-500">
+                    <div className="flex items-center space-x-3 mb-3 sm:mb-0">
+                      <ProviderIcon provider={provider.name} size={40} />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900">{provider.displayName}</div>
+                        <div className="text-sm text-gray-600 mt-1">
                           {getConnectionStatus(provider.name) || 
                            (provider.isConnected ? `Connected (${getProviderAccountEmail(provider.name, session?.user?.email || '')})` : 'Not connected')}
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center justify-end sm:justify-start">
                       {provider.isConnected ? (
-                        <>
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                            <span className="text-sm text-green-600 font-medium">Connected</span>
+                          </div>
                           <button
                             onClick={() => handleDisconnect(provider.name)}
                             disabled={disconnectMutation.isPending}
-                            className="text-sm text-red-600 hover:text-red-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="px-3 py-2 text-sm text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             {disconnectMutation.isPending && disconnectMutation.variables === provider.name 
                               ? 'Disconnecting...' : 'Disconnect'}
                           </button>
-                        </>
+                        </div>
                       ) : (
                         <button
                           onClick={() => handleConnect(provider.name)}
                           disabled={connectMutation.isPending}
-                          className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full sm:w-auto px-6 py-3 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                         >
                           {connectMutation.isPending && connectMutation.variables === provider.name 
                             ? 'Connecting...' : 'Connect'}
@@ -288,14 +295,14 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Calendar Colors */}
-        <div className="bg-white rounded-lg shadow mt-8">
-          <div className="px-6 py-4 border-b">
+        {/* Calendar Colors Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-4 py-4 border-b border-gray-100">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <h2 className="text-lg font-semibold">Calendar Colors</h2>
+              <div className="flex items-center space-x-3">
+                <h2 className="text-lg font-semibold text-gray-900">Calendar Colors</h2>
                 {hasUnsavedChanges && (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full">
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
                     Unsaved changes
                   </span>
                 )}
@@ -311,7 +318,7 @@ export default function SettingsPage() {
                     setShowColorSettings(!showColorSettings);
                   }
                 }}
-                className="text-sm text-blue-600 hover:text-blue-800"
+                className="px-4 py-2 text-sm text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition-colors font-medium"
               >
                 {showColorSettings ? 'Hide' : 'Customize'}
               </button>
@@ -319,38 +326,39 @@ export default function SettingsPage() {
           </div>
 
           {showColorSettings && (
-            <div className="p-6 border-t">
-              <p className="text-sm text-gray-600 mb-4">
+            <div className="p-4 border-t border-gray-100">
+              <p className="text-sm text-gray-600 mb-6 px-1">
                 Choose custom colors for each calendar provider to easily distinguish your events.
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
                 {providerConfigs.map((provider) => (
-                  <div key={provider.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <ProviderIcon provider={provider.name} size={24} />
+                  <div key={provider.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border border-gray-200 rounded-lg">
+                    <div className="flex items-center space-x-3 mb-3 sm:mb-0">
+                      <ProviderIcon provider={provider.name} size={32} />
                       <div>
-                        <div className="font-medium">{provider.displayName}</div>
+                        <div className="font-medium text-gray-900">{provider.displayName}</div>
                         <div className="text-sm text-gray-500">
                           {provider.isConnected ? 'Connected' : 'Not connected'}
                         </div>
                       </div>
                     </div>
                     
-                    <ColorPicker
-                      color={userColors[provider.name] || provider.color}
-                      onChange={(color) => handleColorChange(provider.name, color)}
-                      className="ml-4"
-                    />
+                    <div className="flex justify-center sm:justify-end">
+                      <ColorPicker
+                        color={userColors[provider.name] || provider.color}
+                        onChange={(color) => handleColorChange(provider.name, color)}
+                      />
+                    </div>
                   </div>
                 ))}
               </div>
               
               {hasUnsavedChanges && (
-                <div className="mt-6 pt-4 border-t">
+                <div className="mt-6 pt-4 border-t border-gray-200">
                   <button
                     onClick={handleSaveAllChanges}
-                    className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                    className="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors font-medium"
                   >
                     Save Changes & Update Events
                   </button>
@@ -360,21 +368,21 @@ export default function SettingsPage() {
           )}
         </div>
 
-        {/* Sync Settings */}
-        <div className="bg-white rounded-lg shadow mt-8">
-          <div className="px-6 py-4 border-b">
-            <h2 className="text-lg font-semibold">Sync Settings</h2>
+        {/* Sync Settings Card */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="px-4 py-4 border-b border-gray-100">
+            <h2 className="text-lg font-semibold text-gray-900">Sync Settings</h2>
           </div>
 
-          <div className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="font-medium">Auto-sync</div>
-                <div className="text-sm text-gray-500">
+          <div className="p-4">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex-1">
+                <div className="font-medium text-gray-900">Auto-sync</div>
+                <div className="text-sm text-gray-600 mt-1">
                   Automatically sync calendars every hour
                 </div>
               </div>
-              <label className="relative inline-flex items-center cursor-pointer">
+              <label className="relative inline-flex items-center cursor-pointer ml-4">
                 <input
                   type="checkbox"
                   checked={autoSync}
@@ -386,7 +394,7 @@ export default function SettingsPage() {
             </div>
 
             <div className="mt-6">
-              <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+              <button className="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
                 Sync Now
               </button>
             </div>

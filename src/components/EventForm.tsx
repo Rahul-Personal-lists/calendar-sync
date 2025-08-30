@@ -173,13 +173,13 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50" onClick={handleBackdropClick}>
-      <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" onClick={handleBackdropClick}>
+      <div className="bg-white rounded-xl p-4 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h3 className="text-lg font-semibold text-gray-900">Add Event</h3>
           <button
             onClick={handleCancel}
-            className="text-gray-400 hover:text-gray-600 transition-colors"
+            className="text-gray-400 hover:text-gray-600 transition-colors p-2 rounded-lg hover:bg-gray-100"
           >
             ✕
           </button>
@@ -197,7 +197,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               name="title"
               value={formData.title}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter event title"
               required
             />
@@ -229,7 +229,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               required
             />
           </div>
@@ -247,7 +247,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   name="startTime"
                   value={formData.startTime}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                 />
               </div>
               
@@ -259,7 +259,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   id="duration"
                   name="duration"
                   onChange={handleDurationChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   disabled={!formData.startTime}
                 >
                   <option value="">Select duration</option>
@@ -276,7 +276,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     End Time
                   </label>
-                  <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
+                  <div className="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
                     {formData.endTime}
                   </div>
                 </div>
@@ -295,7 +295,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               name="location"
               value={formData.location}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter location"
             />
           </div>
@@ -311,153 +311,135 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
               value={formData.description}
               onChange={handleInputChange}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
               placeholder="Enter event description"
             />
           </div>
 
           {/* Repeat Options */}
-          <div className="border-t pt-4">
-            <div className="flex items-center justify-between mb-3">
-              <label className="block text-sm font-medium text-gray-700">
-                Repeat
-              </label>
-              <button
-                type="button"
-                onClick={() => setFormData(prev => ({
-                  ...prev,
-                  repeat: {
-                    ...prev.repeat,
-                    frequency: prev.repeat.frequency === 'none' ? 'daily' : 'none'
-                  }
-                }))}
-                className="text-sm text-blue-600 hover:text-blue-800"
-              >
-                {formData.repeat.frequency === 'none' ? 'Add repeat' : 'Remove repeat'}
-              </button>
-            </div>
-            
-            {formData.repeat.frequency !== 'none' && (
-              <div className="space-y-3 bg-gray-50 p-3 rounded-md">
-                {/* Frequency */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Frequency
-                  </label>
-                  <select
-                    value={formData.repeat.frequency}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      repeat: { ...prev.repeat, frequency: e.target.value as any }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="monthly">Monthly</option>
-                    <option value="yearly">Yearly</option>
-                  </select>
-                </div>
+          <div>
+            <label htmlFor="repeat" className="block text-sm font-medium text-gray-700 mb-1">
+              Repeat
+            </label>
+            <select
+              id="repeat"
+              name="repeat"
+              value={formData.repeat.frequency}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                repeat: { ...prev.repeat, frequency: e.target.value }
+              }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+            >
+              <option value="none">No repeat</option>
+              <option value="daily">Daily</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
 
-                {/* Interval */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Every
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      min="1"
-                      max="99"
-                      value={formData.repeat.interval}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        repeat: { ...prev.repeat, interval: parseInt(e.target.value) || 1 }
-                      }))}
-                      className="w-20 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <span className="text-sm text-gray-600">
-                      {formData.repeat.frequency === 'daily' && 'day(s)'}
-                      {formData.repeat.frequency === 'weekly' && 'week(s)'}
-                      {formData.repeat.frequency === 'monthly' && 'month(s)'}
-                      {formData.repeat.frequency === 'yearly' && 'year(s)'}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Days of Week for Weekly - Auto-set based on selected date */}
-                {formData.repeat.frequency === 'weekly' && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Day of Week
-                    </label>
-                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                      {(() => {
-                        // Create date in local timezone to avoid timezone issues
-                        const [year, month, day] = formData.date.split('-').map(Number);
-                        const selectedDate = new Date(year, month - 1, day); // month is 0-indexed
-                        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-                        const dayIndex = selectedDate.getDay();
-                        return dayNames[dayIndex];
-                      })()}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Based on the selected date ({formData.date})
-                    </p>
-                  </div>
-                )}
-
-                {/* Day of Month for Monthly/Yearly - Auto-set based on selected date */}
-                {(formData.repeat.frequency === 'monthly' || formData.repeat.frequency === 'yearly') && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Day of Month
-                    </label>
-                    <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-md text-gray-700">
-                      {(() => {
-                        // Extract day from selected date
-                        const [year, month, day] = formData.date.split('-').map(Number);
-                        return day;
-                      })()}
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Based on the selected date ({formData.date})
-                    </p>
-                  </div>
-                )}
-
-                {/* End Date */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    End Date *
-                  </label>
+          {/* Repeat Options Details */}
+          {formData.repeat.frequency !== 'none' && (
+            <div className="space-y-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Interval
+                </label>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-600">Every</span>
                   <input
-                    type="date"
-                    value={formData.repeat.endDate}
+                    type="number"
+                    min="1"
+                    max="99"
+                    value={formData.repeat.interval}
                     onChange={(e) => setFormData(prev => ({
                       ...prev,
-                      repeat: { ...prev.repeat, endDate: e.target.value }
+                      repeat: { ...prev.repeat, interval: parseInt(e.target.value) || 1 }
                     }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    required
+                    className="w-20 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
                   />
+                  <span className="text-sm text-gray-600">
+                    {formData.repeat.frequency === 'daily' && 'day(s)'}
+                    {formData.repeat.frequency === 'weekly' && 'week(s)'}
+                    {formData.repeat.frequency === 'monthly' && 'month(s)'}
+                    {formData.repeat.frequency === 'yearly' && 'year(s)'}
+                  </span>
                 </div>
               </div>
-            )}
-          </div>
+
+              {/* Days of Week for Weekly - Auto-set based on selected date */}
+              {formData.repeat.frequency === 'weekly' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Day of Week
+                  </label>
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                    {(() => {
+                      // Create date in local timezone to avoid timezone issues
+                      const [year, month, day] = formData.date.split('-').map(Number);
+                      const selectedDate = new Date(year, month - 1, day); // month is 0-indexed
+                      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                      const dayIndex = selectedDate.getDay();
+                      return dayNames[dayIndex];
+                    })()}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Based on the selected date ({formData.date})
+                  </p>
+                </div>
+              )}
+
+              {/* Day of Month for Monthly/Yearly - Auto-set based on selected date */}
+              {(formData.repeat.frequency === 'monthly' || formData.repeat.frequency === 'yearly') && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Day of Month
+                  </label>
+                  <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
+                    {(() => {
+                      // Extract day from selected date
+                      const [year, month, day] = formData.date.split('-').map(Number);
+                      return day;
+                    })()}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Based on the selected date ({formData.date})
+                  </p>
+                </div>
+              )}
+
+              {/* End Date */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  End Date *
+                </label>
+                <input
+                  type="date"
+                  value={formData.repeat.endDate}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    repeat: { ...prev.repeat, endDate: e.target.value }
+                  }))}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <button
               type="button"
               onClick={handleCancel}
-              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
+              className="flex-1 px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
+              className="flex-1 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-colors"
             >
               Add Event
             </button>

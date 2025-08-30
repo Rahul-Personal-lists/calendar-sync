@@ -58,21 +58,24 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
         setTranscript(transcript);
         
         // Use the new voice parser
+        console.log('Attempting to parse voice input:', transcript);
         const parsedEvent = parseVoiceToEvent(transcript);
+        console.log('Voice parser result:', parsedEvent);
         if (parsedEvent) {
           console.log('Parsed event from voice:', parsedEvent);
-          // Convert to VoiceEventData format with time information
+          // Convert to VoiceEventData format with parsed values
           const voiceEventData: VoiceEventData = {
             title: parsedEvent.title,
             description: parsedEvent.description,
             location: parsedEvent.location,
-            // Add the full transcript for the dashboard to parse
-            time: transcript,
-            date: transcript,
+            // Use the parsed date and time instead of full transcript
+            time: `${parsedEvent.start.getHours() % 12 || 12}:${parsedEvent.start.getMinutes().toString().padStart(2, '0')} ${parsedEvent.start.getHours() >= 12 ? 'PM' : 'AM'}`,
+            date: `${parsedEvent.start.getFullYear()}-${(parsedEvent.start.getMonth() + 1).toString().padStart(2, '0')}-${parsedEvent.start.getDate().toString().padStart(2, '0')}`,
           };
           onEventParsed(voiceEventData);
           onClose();
         } else {
+          console.log('Voice parser failed, trying fallback...');
           // Fallback to old parsing if new parser fails
           const fallbackEvent = parseVoiceToEventFallback(transcript);
           if (fallbackEvent) {
@@ -190,17 +193,17 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
 
   if (!isSupported) {
     return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
           <div className="text-center">
             <div className="text-red-500 text-6xl mb-4">🎤</div>
-            <h3 className="text-lg font-semibold mb-2">Voice Input Not Supported</h3>
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">Voice Input Not Supported</h3>
             <p className="text-gray-600 mb-4">
               Your browser doesn't support voice input. Please use Chrome or Safari.
             </p>
             <button
               onClick={onClose}
-              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              className="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Close
             </button>
@@ -211,41 +214,41 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
         <div className="text-center">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-100 transition-colors"
           >
             ✕
           </button>
           
           <div className="mb-6">
             <div 
-              className={`w-24 h-24 rounded-full mx-auto mb-4 flex items-center justify-center cursor-pointer transition-all duration-300 ${
+              className={`w-20 h-20 sm:w-24 sm:h-24 rounded-full mx-auto mb-4 flex items-center justify-center cursor-pointer transition-all duration-300 ${
                 isListening 
                   ? 'bg-red-500 animate-pulse' 
                   : 'bg-blue-500 hover:bg-blue-600'
               }`}
               onClick={isListening ? stopListening : startListening}
             >
-              <div className="text-white text-3xl">
+              <div className="text-white text-2xl sm:text-3xl">
                 {isListening ? '⏹️' : '🎤'}
               </div>
             </div>
             
-            <h3 className="text-lg font-semibold mb-2">
+            <h3 className="text-lg font-semibold mb-2 text-gray-900">
               {isListening ? 'Listening...' : 'Speak an event'}
             </h3>
             
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600 mb-4 px-2">
               Try saying: "Bank appointment at 10am on Wednesday"
             </p>
           </div>
 
           {transcript && (
-            <div className="bg-gray-100 rounded p-3 mb-4">
+            <div className="bg-gray-100 rounded-lg p-3 mb-4">
               <p className="text-sm text-gray-700">
                 <strong>Heard:</strong> {transcript}
               </p>
@@ -255,14 +258,14 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="flex-1 bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+              className="flex-1 bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition-colors"
             >
               Cancel
             </button>
             {isListening && (
               <button
                 onClick={stopListening}
-                className="flex-1 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors"
               >
                 Stop
               </button>

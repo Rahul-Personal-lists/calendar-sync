@@ -339,14 +339,14 @@ export default function DashboardPage() {
       )}
       
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+      <header className="bg-white shadow-sm border-b sticky top-0 z-10">
+        <div className="px-4 py-4">
+          <div className="flex items-center justify-between">
             <div className="flex items-center">
               <h1 className="text-xl font-semibold text-gray-900">Dashboard</h1>
             </div>
             
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            <div className="flex items-center space-x-2">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 {isSyncing && (
                   <>
@@ -377,7 +377,7 @@ export default function DashboardPage() {
               <button
                 onClick={() => syncMutation.mutate()}
                 disabled={isSyncing}
-                className="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50"
+                className="px-3 py-2 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 disabled:opacity-50 transition-colors"
               >
                 <span className="hidden sm:inline">Sync</span>
                 <span className="sm:hidden">🔄</span>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
               
               <button
                 onClick={() => signOut({ callbackUrl: '/auth/signin' })}
-                className="px-3 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                className="px-3 py-2 text-sm bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
               >
                 <span className="hidden sm:inline">Sign Out</span>
                 <span className="sm:hidden">🚪</span>
@@ -396,57 +396,57 @@ export default function DashboardPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <main className="px-4 py-6 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 lg:p-6">
+              <h2 className="text-lg font-semibold mb-4 text-gray-900">Quick Actions</h2>
               
-              <div className="grid grid-cols-4 lg:grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 lg:grid-cols-1 gap-3">
                 <button
                   onClick={() => setIsEventFormOpen(true)}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Add Event"
                 >
                   <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
                     ➕
                   </div>
-                  <span className="text-sm font-medium text-center">Event</span>
+                  <span className="text-sm font-medium text-center text-gray-700">Event</span>
                 </button>
                 
                 <button
                   onClick={() => setIsVoiceModalOpen(true)}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Voice Input"
                 >
                   <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
                     🎤
                   </div>
-                  <span className="text-sm font-medium text-center">Voice</span>
+                  <span className="text-sm font-medium text-center text-gray-700">Voice</span>
                 </button>
                 
                 <button
                   onClick={() => syncMutation.mutate()}
                   disabled={isSyncing}
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 disabled:opacity-50 transition-colors"
                   title="Sync Calendars"
                 >
                   <div className="w-12 h-12 bg-green-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
                     🔄
                   </div>
-                  <span className="text-sm font-medium text-center">Sync</span>
+                  <span className="text-sm font-medium text-center text-gray-700">Sync</span>
                 </button>
                 
                 <a
                   href="/settings"
-                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50"
+                  className="flex flex-col items-center justify-center p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
                   title="Settings"
                 >
                   <div className="w-12 h-12 bg-gray-500 text-white rounded-full flex items-center justify-center text-xl mb-2">
                     ⚙️
                   </div>
-                  <span className="text-sm font-medium text-center">Settings</span>
+                  <span className="text-sm font-medium text-center text-gray-700">Settings</span>
                 </a>
               </div>
             </div>
@@ -455,7 +455,7 @@ export default function DashboardPage() {
           {/* Calendar */}
           <div className="lg:col-span-3">
             {isLoading ? (
-              <div className="bg-white rounded-lg shadow p-8">
+              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
                   <p className="mt-4 text-gray-600">Loading calendar...</p>

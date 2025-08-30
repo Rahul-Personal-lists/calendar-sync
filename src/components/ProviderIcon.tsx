@@ -6,9 +6,10 @@ interface ProviderIconProps {
   provider: string;
   size?: number;
   className?: string;
+  showText?: boolean;
 }
 
-export default function ProviderIcon({ provider, size = 24, className = '' }: ProviderIconProps) {
+export default function ProviderIcon({ provider, size = 24, className = '', showText = false }: ProviderIconProps) {
   const getIconSrc = (provider: string) => {
     switch (provider) {
       case 'google':
@@ -38,7 +39,7 @@ export default function ProviderIcon({ provider, size = 24, className = '' }: Pr
   };
 
   return (
-    <div className={`flex items-center space-x-2 ${className}`}>
+    <div className={`flex items-center ${showText ? 'space-x-2' : ''} ${className}`}>
       <Image
         src={getIconSrc(provider)}
         alt={`${getDisplayName(provider)} icon`}
@@ -46,7 +47,9 @@ export default function ProviderIcon({ provider, size = 24, className = '' }: Pr
         height={size}
         className="rounded"
       />
-      <span className="text-sm font-medium">{getDisplayName(provider)}</span>
+      {showText && (
+        <span className="text-sm font-medium">{getDisplayName(provider)}</span>
+      )}
     </div>
   );
 } 
