@@ -23,11 +23,17 @@ export default function CalendarView({
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [viewType, setViewType] = useState<CalendarViewType>('day');
   const [colorKey, setColorKey] = useState(0);
+  const [selectedCalendar, setSelectedCalendar] = useState<string | null>(null);
 
   // Force re-render when userColors change
   useEffect(() => {
     setColorKey(prev => prev + 1);
   }, [userColors]);
+
+  // Filter events based on selected calendar
+  const filteredEvents = selectedCalendar 
+    ? events.filter(event => event.provider === selectedCalendar)
+    : events;
 
   const getDaysInMonth = (date: Date) => {
     const year = date.getFullYear();
@@ -179,7 +185,7 @@ export default function CalendarView({
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
     
-    const filteredEvents = events.filter(event => {
+    const eventsForDate = filteredEvents.filter(event => {
       // For non-recurring events, check exact date match
       if (!isRecurringEvent(event)) {
         const eventDate = new Date(event.start_time);
@@ -197,7 +203,7 @@ export default function CalendarView({
     });
 
     // Sort events by start time
-    return filteredEvents.sort((a, b) => {
+    return eventsForDate.sort((a, b) => {
       const timeA = new Date(a.start_time).getTime();
       const timeB = new Date(b.start_time).getTime();
       return timeA - timeB;
@@ -530,8 +536,21 @@ export default function CalendarView({
 
   return (
     <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden" key={colorKey}>
-      {/* Calendar Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-100">
+              {/* Calendar Header */}
+        <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-100">
+          {/* Calendar Filter Status */}
+          {selectedCalendar && (
+            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 font-medium z-10">
+              Showing {selectedCalendar === 'google' ? 'Google' : selectedCalendar === 'azure-ad' ? 'Outlook' : 'Notion'} Calendar Only
+              <button
+                onClick={() => setSelectedCalendar(null)}
+                className="ml-2 text-blue-500 hover:text-blue-700 font-bold"
+                title="Show all calendars"
+              >
+                ×
+              </button>
+            </div>
+          )}
         <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-0">
           <div className="flex flex-col items-center space-y-2">
             <div className="flex items-center space-x-2">
@@ -594,32 +613,61 @@ export default function CalendarView({
               </button>
             </div>
             
-            {/* Provider Icons */}
+            {/* Provider Icons - Calendar Filter */}
             <div className="flex items-center space-x-2 text-sm text-gray-600">
+              <div className="text-xs text-gray-500 mb-1">
+                {selectedCalendar ? 'Filtered by:' : 'Filter by:'}
+              </div>
               <div className="flex items-center space-x-1">
-                <div 
-                  className="w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold"
+                <button
+                  onClick={() => setSelectedCalendar(selectedCalendar === 'google' ? null : 'google')}
+                  className={`w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all ${
+                    selectedCalendar === 'google' ? 'ring-2 ring-blue-300 ring-offset-1' : ''
+                  }`}
                   style={userColors['google'] ? { backgroundColor: userColors['google'] } : { backgroundColor: '#4285f4' }}
+                  title={selectedCalendar === 'google' ? 'Show all calendars' : 'Show only Google Calendar'}
                 >
                   G
-                </div>
+                </button>
               </div>
               <div className="flex items-center space-x-1">
-                <div 
-                  className="w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold"
+                <button
+                  onClick={() => setSelectedCalendar(selectedCalendar === 'azure-ad' ? null : 'azure-ad')}
+                  className={`w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all ${
+                    selectedCalendar === 'azure-ad' ? 'ring-2 ring-blue-300 ring-offset-1' : ''
+                  }`}
                   style={userColors['azure-ad'] ? { backgroundColor: userColors['azure-ad'] } : { backgroundColor: '#0078d4' }}
+                  title={selectedCalendar === 'azure-ad' ? 'Show all calendars' : 'Show only Outlook Calendar'}
                 >
                   O
-                </div>
+                </button>
               </div>
               <div className="flex items-center space-x-1">
-                <div 
-                  className="w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold"
+                <button
+                  onClick={() => setSelectedCalendar(selectedCalendar === 'notion' ? null : 'notion')}
+                  className={`w-4 h-4 rounded flex items-center justify-center text-white text-xs font-bold cursor-pointer transition-all ${
+                    selectedCalendar === 'notion' ? 'ring-2 ring-blue-300 ring-offset-1' : ''
+                  }`}
                   style={userColors['notion'] ? { backgroundColor: userColors['notion'] } : { backgroundColor: '#000000' }}
+                  title={selectedCalendar === 'notion' ? 'Show all calendars' : 'Show only Notion Calendar'}
                 >
                   N
-                </div>
+                </button>
               </div>
+              {selectedCalendar && (
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-500">
+                    ({filteredEvents.length} events)
+                  </span>
+                  <button
+                    onClick={() => setSelectedCalendar(null)}
+                    className="text-xs text-blue-600 hover:text-blue-800"
+                    title="Show all calendars"
+                  >
+                    Clear
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
