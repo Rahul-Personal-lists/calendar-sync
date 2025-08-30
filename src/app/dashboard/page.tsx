@@ -7,7 +7,7 @@ import CalendarView from '@/components/CalendarView';
 import VoiceInput from '@/components/VoiceInput';
 import EventForm from '@/components/EventForm';
 import EventEditModal from '@/components/EventEditModal';
-import { UnifiedEvent, VoiceEventData } from '@/types/events';
+import { UnifiedEvent, VoiceEventData, RepeatOptions } from '@/types/events';
 import { useColors } from '@/components/ColorContext';
 import { convertVoiceDataToEventData, parseVoiceToEvent } from '@/lib/voice-parser';
 
@@ -195,7 +195,15 @@ export default function DashboardPage() {
 
   // Create form event mutation (separate from voice mutation)
   const createFormEventMutation = useMutation({
-    mutationFn: async (eventFormData: any) => {
+    mutationFn: async (eventFormData: {
+      title: string;
+      start: string;
+      end: string;
+      description?: string;
+      location?: string;
+      isAllDay: boolean;
+      repeat?: RepeatOptions;
+    }) => {
       setIsCreatingEvent(true);
       
       console.log('Sending form event data to API:', eventFormData);

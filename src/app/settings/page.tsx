@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useSession, signIn } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { CalendarProvider } from '@/types/events';
 import ColorPicker from '@/components/ColorPicker';
@@ -146,7 +146,7 @@ export default function SettingsPage() {
       name: 'google',
       displayName: 'Google Calendar',
       icon: 'G',
-      isConnected: providers.some((p: any) => p.provider === 'google'),
+      isConnected: providers.some((p: { provider: string }) => p.provider === 'google'),
       color: '#4285f4',
     },
     {
@@ -154,7 +154,7 @@ export default function SettingsPage() {
       name: 'azure-ad',
       displayName: 'Outlook Calendar',
       icon: 'O',
-      isConnected: providers.some((p: any) => p.provider === 'azure-ad'),
+      isConnected: providers.some((p: { provider: string }) => p.provider === 'azure-ad'),
       color: '#0078d4',
     },
     {
@@ -162,7 +162,7 @@ export default function SettingsPage() {
       name: 'notion',
       displayName: 'Notion Calendar',
       icon: 'N',
-      isConnected: providers.some((p: any) => p.provider === 'notion'),
+      isConnected: providers.some((p: { provider: string }) => p.provider === 'notion'),
       color: '#000000',
     },
   ];
@@ -220,7 +220,7 @@ export default function SettingsPage() {
               <div className="flex items-center justify-center sm:justify-end">
                 <div className="bg-blue-50 rounded-full px-4 py-2">
                   <div className="text-xl font-bold text-blue-600">
-                    {providers.filter((p: any) => p.provider).length}
+                    {providers.filter((p: { provider: string }) => p.provider).length}
                   </div>
                   <div className="text-xs text-blue-600 font-medium">Connected</div>
                 </div>

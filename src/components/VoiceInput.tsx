@@ -199,7 +199,7 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
             <div className="text-red-500 text-6xl mb-4">🎤</div>
             <h3 className="text-lg font-semibold mb-2 text-gray-900">Voice Input Not Supported</h3>
             <p className="text-gray-600 mb-4">
-              Your browser doesn't support voice input. Please use Chrome or Safari.
+              Your browser doesn&apos;t support voice input. Please use Chrome or Safari.
             </p>
             <button
               onClick={onClose}
@@ -243,7 +243,7 @@ export default function VoiceInput({ onEventParsed, onClose, isOpen }: VoiceInpu
             </h3>
             
             <p className="text-sm text-gray-600 mb-4 px-2">
-              Try saying: "Bank appointment at 10am on Wednesday"
+              Try saying: &quot;Bank appointment at 10am on Wednesday&quot;
             </p>
           </div>
 

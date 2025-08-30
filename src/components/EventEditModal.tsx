@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { UnifiedEvent, VoiceEventData, CalendarProvider, RepeatOptions } from '@/types/events';
+import { UnifiedEvent, CalendarProvider, RepeatOptions } from '@/types/events';
 import ProviderIcon from './ProviderIcon';
 
 interface EventEditModalProps {
@@ -79,7 +79,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
       const response = await fetch('/api/providers');
       if (response.ok) {
         const data = await response.json();
-        const calendarProviders: CalendarProvider[] = data.map((provider: any) => ({
+        const calendarProviders: CalendarProvider[] = data.map((provider: { provider: string; access_token?: string }) => ({
           id: provider.provider,
           name: provider.provider,
           displayName: provider.provider === 'azure-ad' ? 'Outlook' : 
@@ -486,7 +486,7 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                     <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
                       {(() => {
                         // Extract day from selected date
-                        const [year, month, day] = formData.date.split('-').map(Number);
+                        const [, , day] = formData.date.split('-').map(Number);
                         return day;
                       })()}
                     </div>
@@ -620,9 +620,9 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
                 </>
               ) : (
                 <>
-                  <p className="text-gray-600 mb-6">
-                    Are you sure you want to delete "{event.title}"? This action cannot be undone.
-                  </p>
+                                      <p className="text-gray-600 mb-6">
+                      Are you sure you want to delete &quot;{event.title}&quot;? This action cannot be undone.
+                    </p>
                   <div className="flex gap-3">
                     <button
                       onClick={() => setShowDeleteConfirm(false)}

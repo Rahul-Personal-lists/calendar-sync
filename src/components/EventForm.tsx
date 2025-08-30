@@ -377,8 +377,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
                     {(() => {
                       // Create date in local timezone to avoid timezone issues
-                      const [year, month, day] = formData.date.split('-').map(Number);
-                      const selectedDate = new Date(year, month - 1, day); // month is 0-indexed
+                      const selectedDate = new Date(formData.date);
                       const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
                       const dayIndex = selectedDate.getDay();
                       return dayNames[dayIndex];
@@ -399,7 +398,7 @@ export default function EventForm({ onEventParsed, onClose, isOpen }: EventFormP
                   <div className="px-3 py-2 bg-gray-100 border border-gray-300 rounded-lg text-gray-700">
                     {(() => {
                       // Extract day from selected date
-                      const [year, month, day] = formData.date.split('-').map(Number);
+                      const [, , day] = formData.date.split('-').map(Number);
                       return day;
                     })()}
                   </div>
