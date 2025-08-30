@@ -185,6 +185,7 @@ export default function CalendarView({
     const targetDate = new Date(date);
     targetDate.setHours(0, 0, 0, 0);
     
+    // Always use filteredEvents (which includes the calendar filter)
     const eventsForDate = filteredEvents.filter(event => {
       // For non-recurring events, check exact date match
       if (!isRecurringEvent(event)) {
@@ -470,7 +471,14 @@ export default function CalendarView({
               ))
             ) : (
               <div className="text-gray-500 text-center py-8">
-                No events scheduled for today
+                {selectedCalendar ? (
+                  <div>
+                    <div className="text-sm mb-2">No events from {selectedCalendar === 'google' ? 'Google' : selectedCalendar === 'azure-ad' ? 'Outlook' : 'Notion'} calendar</div>
+                    <div className="text-xs text-gray-400">Try navigating to other dates or check other calendars</div>
+                  </div>
+                ) : (
+                  'No events scheduled for today'
+                )}
               </div>
             )}
           </div>
@@ -754,7 +762,14 @@ export default function CalendarView({
             ))}
             {getEventsForDate(selectedDate).length === 0 && (
               <div className="text-gray-500 text-center py-4">
-                No events scheduled
+                {selectedCalendar ? (
+                  <div>
+                    <div className="text-sm mb-2">No events from {selectedCalendar === 'google' ? 'Google' : selectedCalendar === 'azure-ad' ? 'Outlook' : 'Notion'} calendar</div>
+                    <div className="text-xs text-gray-400">Try selecting a different date or calendar</div>
+                  </div>
+                ) : (
+                  'No events scheduled'
+                )}
               </div>
             )}
           </div>
