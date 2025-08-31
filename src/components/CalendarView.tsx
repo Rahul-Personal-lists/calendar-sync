@@ -549,7 +549,7 @@ export default function CalendarView({
           {/* Calendar Filter Status */}
           {selectedCalendar && (
             <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 font-medium z-10">
-              Showing {selectedCalendar === 'google' ? 'Google' : selectedCalendar === 'azure-ad' ? 'Outlook' : 'Notion'} Calendar Only
+              {selectedCalendar === 'google' ? 'Google Calendar' : selectedCalendar === 'azure-ad' ? 'Outlook Calendar' : 'Notion Calendar'}
               <button
                 onClick={() => setSelectedCalendar(null)}
                 className="ml-2 text-blue-500 hover:text-blue-700 font-bold"
@@ -560,18 +560,18 @@ export default function CalendarView({
             </div>
           )}
         <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-0">
-          <div className="flex flex-col items-center space-y-2">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col items-center space-y-2 w-full sm:w-auto">
+            <div className="flex items-center justify-between w-full sm:w-auto space-x-2">
               <button
                 onClick={goToPreviousPeriod}
-                className="p-2 hover:bg-gray-100 rounded text-lg font-bold transition-colors"
+                className="p-2 hover:bg-gray-100 rounded text-xl sm:text-lg font-bold transition-colors min-w-[40px] flex items-center justify-center bg-white border border-gray-200 shadow-sm"
               >
                 ‹
               </button>
-              <h2 className="text-lg font-semibold text-gray-900">{getViewTitle()}</h2>
+              <h2 className="text-lg font-semibold text-gray-900 text-center flex-1 sm:flex-none">{getViewTitle()}</h2>
               <button
                 onClick={goToNextPeriod}
-                className="p-2 hover:bg-gray-100 rounded text-lg font-bold transition-colors"
+                className="p-2 hover:bg-gray-100 rounded text-xl sm:text-lg font-bold transition-colors min-w-[40px] flex items-center justify-center bg-white border border-gray-200 shadow-sm"
               >
                 ›
               </button>
