@@ -548,7 +548,7 @@ export default function CalendarView({
         <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 border-b border-gray-100">
           {/* Calendar Filter Status */}
           {selectedCalendar && (
-            <div className="absolute top-2 left-1/2 transform -translate-x-1/2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 font-medium z-10">
+            <div className="absolute top-1 left-1/2 transform -translate-x-1/2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1 text-xs text-blue-700 font-medium z-10 shadow-sm">
               {selectedCalendar === 'google' ? 'Google Calendar' : selectedCalendar === 'azure-ad' ? 'Outlook Calendar' : 'Notion Calendar'}
               <button
                 onClick={() => setSelectedCalendar(null)}
@@ -559,7 +559,7 @@ export default function CalendarView({
               </button>
             </div>
           )}
-        <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-0">
+        <div className="flex items-center justify-center sm:justify-start mb-4 sm:mb-0 pt-6 sm:pt-0">
           <div className="flex flex-col items-center space-y-2 w-full sm:w-auto">
             <div className="flex items-center justify-between w-full sm:w-auto space-x-2">
               <button
