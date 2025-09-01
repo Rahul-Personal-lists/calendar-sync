@@ -289,7 +289,8 @@ export default function CalendarView({
         const groupEventStart = new Date(groupEvent.start_time).getTime();
         const groupEventEnd = new Date(groupEvent.end_time).getTime();
         
-        // Check for overlap: one event starts before another ends
+        // Check for overlap: events must actually overlap in time
+        // One event starts before the other ends AND one event ends after the other starts
         return (eventStart < groupEventEnd && eventEnd > groupEventStart);
       });
       
@@ -467,7 +468,7 @@ export default function CalendarView({
                   {group.map((event, eventIndex) => (
                     <div
                       key={event.id}
-                      className={`p-3 rounded-lg cursor-pointer text-white group flex-1 min-w-0 ${
+                      className={`p-3 rounded-lg cursor-pointer text-white group w-1/2 min-w-0 ${
                         userColors[event.provider] ? '' : getProviderColor(event.provider)
                       }`}
                       style={getProviderColorStyle(event.provider)}
@@ -766,16 +767,16 @@ export default function CalendarView({
               const selectedDateEvents = getEventsForDate(selectedDate);
               const groupedSelectedEvents = groupOverlappingEvents(selectedDateEvents);
               
-              return groupedSelectedEvents.map((group, groupIndex) => (
-                <div key={groupIndex} className="flex space-x-2">
-                  {group.map((event, eventIndex) => (
-                    <div
-                      key={event.id}
-                      className={`p-3 rounded-lg cursor-pointer text-white group transition-colors flex-1 min-w-0 ${
-                        userColors[event.provider] ? '' : getProviderColor(event.provider)
-                      }`}
-                      style={getProviderColorStyle(event.provider)}
-                    >
+                             return groupedSelectedEvents.map((group, groupIndex) => (
+                 <div key={groupIndex} className="flex space-x-2">
+                   {group.map((event, eventIndex) => (
+                     <div
+                       key={event.id}
+                       className={`p-3 rounded-lg cursor-pointer text-white group transition-colors w-1/2 min-w-0 ${
+                         userColors[event.provider] ? '' : getProviderColor(event.provider)
+                       }`}
+                       style={getProviderColorStyle(event.provider)}
+                     >
                       <div className="flex items-center justify-between">
                         <div 
                           className="flex-1 min-w-0"
