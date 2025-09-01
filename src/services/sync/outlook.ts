@@ -23,45 +23,78 @@ export interface OutlookEvent {
 export async function fetchOutlookEvents(accessToken: string, startDate?: string, endDate?: string): Promise<UnifiedEvent[]> {
   try {
     const now = new Date();
-    const start = startDate || now.toISOString();
-    const end = endDate || new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days from now
+    // Default to fetching events from 7 days ago to 90 days in the future
+    // Use explicit date formatting to ensure proper timezone handling
+    const start = startDate || new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString();
+    const end = endDate || new Date(now.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString(); // 90 days from now
 
-    console.log('Fetching Outlook events with date range:', { start, end });
+    console.log('Fetching Outlook events with date range:', { 
+      start, 
+      end, 
+      startDate: startDate ? 'custom' : 'default',
+      endDate: endDate ? 'custom' : 'default'
+    });
 
-    const response = await fetch(
-      `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}`,
-      {
+    let allEvents: any[] = [];
+    let nextLink: string | null = null;
+    let pageCount = 0;
+
+    do {
+      const url = nextLink || `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}&$top=100`;
+      
+      console.log(`Fetching page ${pageCount + 1}:`, url);
+
+      const response = await fetch(url, {
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
-      }
-    );
-
-    console.log('Outlook API response status:', response.status);
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Outlook API error:', {
-        status: response.status,
-        statusText: response.statusText,
-        body: errorText
       });
-      throw new Error(`Failed to fetch Outlook events: ${response.statusText} - ${errorText}`);
-    }
 
-    const data = await response.json();
-    console.log('Outlook API response data:', {
-      hasValue: !!data.value,
-      valueLength: data.value?.length || 0,
-      firstEvent: data.value?.[0] ? {
-        id: data.value[0].id,
-        subject: data.value[0].subject,
-        start: data.value[0].start?.dateTime
+      console.log('Outlook API response status:', response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Outlook API error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(`Failed to fetch Outlook events: ${response.statusText} - ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log(`Page ${pageCount + 1} response:`, {
+        hasValue: !!data.value,
+        valueLength: data.value?.length || 0,
+        hasNextLink: !!data['@odata.nextLink'],
+        firstEvent: data.value?.[0] ? {
+          id: data.value[0].id,
+          subject: data.value[0].subject,
+          start: data.value[0].start?.dateTime
+        } : null,
+        lastEvent: data.value?.[data.value.length - 1] ? {
+          id: data.value[data.value.length - 1].id,
+          subject: data.value[data.value.length - 1].subject,
+          start: data.value[data.value.length - 1].start?.dateTime
+        } : null
+      });
+
+      allEvents = allEvents.concat(data.value || []);
+      nextLink = data['@odata.nextLink'] || null;
+      pageCount++;
+    } while (nextLink && pageCount < 10); // Limit to 10 pages to prevent infinite loops
+
+    console.log('Total Outlook events fetched:', {
+      totalEvents: allEvents.length,
+      pagesFetched: pageCount,
+      dateRange: allEvents.length > 0 ? {
+        earliest: allEvents[0]?.start?.dateTime,
+        latest: allEvents[allEvents.length - 1]?.start?.dateTime
       } : null
     });
 
-    return data.value.map(normalizeOutlookEvent);
+    return allEvents.map(normalizeOutlookEvent);
   } catch (error) {
     console.error('Error fetching Outlook events:', error);
     throw error;
@@ -69,7 +102,7 @@ export async function fetchOutlookEvents(accessToken: string, startDate?: string
 }
 
 export function normalizeOutlookEvent(event: OutlookEvent): UnifiedEvent {
-  const normalized = {
+  return {
     id: event.id,
     provider: 'azure-ad', // Changed from 'outlook' to 'azure-ad' to match the account provider
     title: event.subject || 'Untitled Event',
@@ -82,15 +115,6 @@ export function normalizeOutlookEvent(event: OutlookEvent): UnifiedEvent {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
-
-  console.log('Normalized Outlook event:', {
-    id: normalized.id,
-    title: normalized.title,
-    start_time: normalized.start_time,
-    provider: normalized.provider
-  });
-
-  return normalized;
 }
 
 export async function createOutlookEvent(accessToken: string, event: Omit<UnifiedEvent, 'id' | 'provider' | 'created_at' | 'updated_at'>): Promise<UnifiedEvent> {

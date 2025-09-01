@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { UnifiedEvent, CalendarProvider, RepeatOptions } from '@/types/events';
 import ProviderIcon from './ProviderIcon';
 
@@ -39,15 +39,18 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleteScope, setDeleteScope] = useState<'single' | 'following' | 'series' | null>(null);
 
-  // Load event data when modal opens
-  useEffect(() => {
-    if (isOpen && event) {
-      loadEventData();
-      fetchProviders();
+  const getProviderColor = (provider: string) => {
+    switch (provider) {
+      case 'google': return '#4285F4';
+      case 'outlook': return '#0078D4';
+      case 'notion': return '#000000';
+      case 'apple': return '#000000';
+      case 'azure-ad': return '#0078D4';
+      default: return '#6B7280';
     }
-  }, [isOpen, event]);
+  };
 
-  const loadEventData = () => {
+  const loadEventData = useCallback(() => {
     if (!event) return;
     
     const startDate = new Date(event.start_time);
@@ -71,9 +74,9 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
         dayOfMonth: 1,
       } as RepeatOptions,
     });
-  };
+  }, [event]);
 
-  const fetchProviders = async () => {
+  const fetchProviders = useCallback(async () => {
     setIsLoadingProviders(true);
     try {
       const response = await fetch('/api/providers');
@@ -96,20 +99,15 @@ export default function EventEditModal({ event, onClose, onSave, onDelete, isOpe
     } finally {
       setIsLoadingProviders(false);
     }
-  };
+  }, []);
 
-
-
-  const getProviderColor = (provider: string) => {
-    switch (provider) {
-      case 'google': return '#4285F4';
-      case 'outlook': return '#0078D4';
-      case 'notion': return '#000000';
-      case 'apple': return '#000000';
-      case 'azure-ad': return '#0078D4';
-      default: return '#6B7280';
+  // Load event data when modal opens
+  useEffect(() => {
+    if (isOpen && event) {
+      loadEventData();
+      fetchProviders();
     }
-  };
+  }, [isOpen, event, loadEventData, fetchProviders]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;

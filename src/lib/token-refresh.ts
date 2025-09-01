@@ -114,8 +114,10 @@ export async function getValidAccessToken(
             return null;
           }
         } else if (provider === 'outlook') {
-          // TODO: Add Outlook token refresh
-          console.log('Outlook token refresh not implemented yet');
+          // Basic Outlook token refresh - redirect to re-authenticate
+          console.log('Outlook token expired, needs re-authentication');
+          // For now, we'll return null to indicate re-auth is needed
+          // In the future, implement proper refresh token flow
           return null;
         }
       } else {
