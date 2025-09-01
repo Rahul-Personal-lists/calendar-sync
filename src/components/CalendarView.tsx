@@ -278,86 +278,47 @@ export default function CalendarView({
     });
     
     const groups: UnifiedEvent[][] = [];
-    let currentGroup: UnifiedEvent[] = [];
     
     for (const event of sortedEvents) {
-      const eventStart = new Date(event.start_time).getTime();
-      const eventEnd = new Date(event.end_time).getTime();
+      let addedToExistingGroup = false;
       
-      // Check if this event overlaps with any event in the current group
-      const overlapsWithCurrentGroup = currentGroup.some(groupEvent => {
-        const groupEventStart = new Date(groupEvent.start_time).getTime();
-        const groupEventEnd = new Date(groupEvent.end_time).getTime();
-        
-        // Check for overlap: events must actually overlap in time
-        // For events to overlap, one must start before the other ends AND end after the other starts
-        // This means there must be actual time intersection, not just adjacency
-        const hasOverlap = (eventStart < groupEventEnd && eventEnd > groupEventStart);
-        
-        // Debug logging to see what's happening
-        if (hasOverlap) {
-          console.log('Overlap detected:', {
-            event1: { title: event.title, start: new Date(eventStart).toLocaleTimeString(), end: new Date(eventEnd).toLocaleTimeString() },
-            event2: { title: groupEvent.title, start: new Date(groupEventStart).toLocaleTimeString(), end: new Date(groupEventEnd).toLocaleTimeString() }
-          });
-        }
-        
-        return hasOverlap;
-      });
-      
-      if (overlapsWithCurrentGroup) {
-        // Add to current group
-        currentGroup.push(event);
-      } else {
-        // If we have a current group, save it and start a new one
-        if (currentGroup.length > 0) {
-          groups.push([...currentGroup]);
-        }
-        currentGroup = [event];
-      }
-    }
-    
-    // Don't forget the last group
-    if (currentGroup.length > 0) {
-      groups.push(currentGroup);
-    }
-    
-    // Now we need to merge groups that have overlapping events
-    const mergedGroups: UnifiedEvent[][] = [];
-    
-    for (const group of groups) {
-      let merged = false;
-      
-      for (let i = 0; i < mergedGroups.length; i++) {
-        const existingGroup = mergedGroups[i];
-        
-        // Check if any event in this group overlaps with any event in the existing group
-        const hasOverlap = group.some(event => {
+      // Try to add to an existing group
+      for (const group of groups) {
+        // Check if this event overlaps with ANY event in this group
+        const overlapsWithGroup = group.some(groupEvent => {
           const eventStart = new Date(event.start_time).getTime();
           const eventEnd = new Date(event.end_time).getTime();
+          const groupEventStart = new Date(groupEvent.start_time).getTime();
+          const groupEventEnd = new Date(groupEvent.end_time).getTime();
           
-          return existingGroup.some(existingEvent => {
-            const existingStart = new Date(existingEvent.start_time).getTime();
-            const existingEnd = new Date(existingEvent.end_time).getTime();
-            
-            return (eventStart < existingEnd && eventEnd > existingStart);
-          });
+          // Check for overlap: events must actually overlap in time
+          const hasOverlap = (eventStart < groupEventEnd && eventEnd > groupEventStart);
+          
+          // Debug logging to see what's happening
+          if (hasOverlap) {
+            console.log('Overlap detected:', {
+              event1: { title: event.title, start: new Date(eventStart).toLocaleTimeString(), end: new Date(eventEnd).toLocaleTimeString() },
+              event2: { title: groupEvent.title, start: new Date(groupEventStart).toLocaleTimeString(), end: new Date(groupEventEnd).toLocaleTimeString() }
+            });
+          }
+          
+          return hasOverlap;
         });
         
-        if (hasOverlap) {
-          // Merge the groups
-          mergedGroups[i] = [...existingGroup, ...group];
-          merged = true;
+        if (overlapsWithGroup) {
+          group.push(event);
+          addedToExistingGroup = true;
           break;
         }
       }
       
-      if (!merged) {
-        mergedGroups.push(group);
+      // If we couldn't add to any existing group, create a new one
+      if (!addedToExistingGroup) {
+        groups.push([event]);
       }
     }
     
-    return mergedGroups;
+    return groups;
   };
 
   const handleEditEvent = (event: UnifiedEvent) => {
