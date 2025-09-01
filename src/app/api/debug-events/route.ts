@@ -4,11 +4,21 @@ import { authOptions } from '@/lib/auth';
 import { supabase } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
+  let session;
+  
   try {
-    const session = await getServerSession(authOptions);
+    session = await getServerSession(authOptions);
     
     if (!session?.user?.email) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Restrict debug endpoints to development or admin users
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
+    
+    if (!isDevelopment && !isAdmin) {
+      return NextResponse.json({ error: 'Debug endpoints only available in development or to admin users' }, { status: 403 });
     }
 
     // Get URL parameters for date filtering

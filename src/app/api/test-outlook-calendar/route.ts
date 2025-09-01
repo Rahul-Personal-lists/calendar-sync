@@ -13,6 +13,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    // Restrict debug endpoints to development or admin users
+    const isDevelopment = process.env.NODE_ENV === 'development';
+    const isAdmin = session.user.email === process.env.ADMIN_EMAIL;
+    
+    if (!isDevelopment && !isAdmin) {
+      return NextResponse.json({ error: 'Debug endpoints only available in development or to admin users' }, { status: 403 });
+    }
+
     console.log('Testing Outlook calendar API for user:', session.user.email);
 
     // Get valid Outlook access token
