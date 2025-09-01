@@ -40,7 +40,7 @@ export async function fetchOutlookEvents(accessToken: string, startDate?: string
     let pageCount = 0;
 
     do {
-      const url = nextLink || `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}&$top=100`;
+      const url: string = nextLink || `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}&$top=100`;
       
       console.log(`Fetching page ${pageCount + 1}:`, url);
 
