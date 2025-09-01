@@ -267,6 +267,52 @@ export default function CalendarView({
     }
   };
 
+  const groupOverlappingEvents = (events: UnifiedEvent[]) => {
+    if (events.length === 0) return [];
+    
+    // Sort events by start time
+    const sortedEvents = [...events].sort((a, b) => {
+      const timeA = new Date(a.start_time).getTime();
+      const timeB = new Date(b.start_time).getTime();
+      return timeA - timeB;
+    });
+    
+    const groups: UnifiedEvent[][] = [];
+    let currentGroup: UnifiedEvent[] = [];
+    
+    for (const event of sortedEvents) {
+      const eventStart = new Date(event.start_time).getTime();
+      const eventEnd = new Date(event.end_time).getTime();
+      
+      // Check if this event overlaps with any event in the current group
+      const overlapsWithCurrentGroup = currentGroup.some(groupEvent => {
+        const groupEventStart = new Date(groupEvent.start_time).getTime();
+        const groupEventEnd = new Date(groupEvent.end_time).getTime();
+        
+        // Check for overlap: one event starts before another ends
+        return (eventStart < groupEventEnd && eventEnd > groupEventStart);
+      });
+      
+      if (overlapsWithCurrentGroup) {
+        // Add to current group
+        currentGroup.push(event);
+      } else {
+        // If we have a current group, save it and start a new one
+        if (currentGroup.length > 0) {
+          groups.push([...currentGroup]);
+        }
+        currentGroup = [event];
+      }
+    }
+    
+    // Don't forget the last group
+    if (currentGroup.length > 0) {
+      groups.push(currentGroup);
+    }
+    
+    return groups;
+  };
+
   const handleEditEvent = (event: UnifiedEvent) => {
     if (onEventEdit) {
       onEventEdit(event);
@@ -401,6 +447,9 @@ export default function CalendarView({
     const dayEvents = getEventsForDate(currentDate);
     const isToday = currentDate.toDateString() === new Date().toDateString();
     
+    // Group overlapping events
+    const groupedEvents = groupOverlappingEvents(dayEvents);
+    
     return (
       <div className="p-4">
         <div className={`p-4 rounded-lg border ${isToday ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-200'}`}>
@@ -413,60 +462,64 @@ export default function CalendarView({
           </div>
           <div className="mt-4 space-y-2">
             {dayEvents.length > 0 ? (
-              dayEvents.map(event => (
-                <div
-                  key={event.id}
-                  className={`p-3 rounded-lg cursor-pointer text-white group ${
-                    userColors[event.provider] ? '' : getProviderColor(event.provider)
-                  }`}
-                  style={getProviderColorStyle(event.provider)}
-                >
-                  <div className="flex items-center justify-between">
-                    <div 
-                      className="flex-1"
-                      onClick={() => onEventClick?.(event)}
+              groupedEvents.map((group, groupIndex) => (
+                <div key={groupIndex} className="flex space-x-2">
+                  {group.map((event, eventIndex) => (
+                    <div
+                      key={event.id}
+                      className={`p-3 rounded-lg cursor-pointer text-white group flex-1 min-w-0 ${
+                        userColors[event.provider] ? '' : getProviderColor(event.provider)
+                      }`}
+                      style={getProviderColorStyle(event.provider)}
                     >
-                      <div className="font-medium flex items-center space-x-2">
-                        {getRepeatIcon(event) && (
-                          <span className="text-sm">{getRepeatIcon(event)}</span>
-                        )}
-                        <span>{event.title}</span>
-                      </div>
-                      {event.start_time && (
-                        <div className="text-sm opacity-90">
-                          {new Date(event.start_time).toLocaleTimeString('en-US', { 
-                            hour: 'numeric', 
-                            minute: '2-digit' 
-                          })}
-                          {event.end_time && (
-                            <span>
-                              {' - '}
-                              {new Date(event.end_time).toLocaleTimeString('en-US', { 
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex-1 min-w-0"
+                          onClick={() => onEventClick?.(event)}
+                        >
+                          <div className="font-medium flex items-center space-x-2">
+                            {getRepeatIcon(event) && (
+                              <span className="text-sm">{getRepeatIcon(event)}</span>
+                            )}
+                            <span className="truncate">{event.title}</span>
+                          </div>
+                          {event.start_time && (
+                            <div className="text-sm opacity-90">
+                              {new Date(event.start_time).toLocaleTimeString('en-US', { 
                                 hour: 'numeric', 
                                 minute: '2-digit' 
                               })}
-                            </span>
+                              {event.end_time && (
+                                <span>
+                                  {' - '}
+                                  {new Date(event.end_time).toLocaleTimeString('en-US', { 
+                                    hour: 'numeric', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {event.location && (
+                            <div className="text-sm opacity-90 truncate">📍 {event.location}</div>
                           )}
                         </div>
-                      )}
-                      {event.location && (
-                        <div className="text-sm opacity-90">📍 {event.location}</div>
-                      )}
+                        
+                        {onEventEdit && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(event);
+                            }}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                            title="Edit event"
+                          >
+                            ✏️
+                          </button>
+                        )}
+                      </div>
                     </div>
-                    
-                    {onEventEdit && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleEditEvent(event);
-                        }}
-                        className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                        title="Edit event"
-                      >
-                        ✏️
-                      </button>
-                    )}
-                  </div>
+                  ))}
                 </div>
               ))
             ) : (
@@ -709,57 +762,66 @@ export default function CalendarView({
             })}
           </h3>
           <div className="space-y-2">
-            {getEventsForDate(selectedDate).map(event => (
-              <div
-                key={event.id}
-                className={`p-3 rounded-lg cursor-pointer text-white group transition-colors ${
-                  userColors[event.provider] ? '' : getProviderColor(event.provider)
-                }`}
-                style={getProviderColorStyle(event.provider)}
-              >
-                <div className="flex items-center justify-between">
-                  <div 
-                    className="flex-1"
-                    onClick={() => onEventClick?.(event)}
-                  >
-                    <div className="font-medium">{event.title}</div>
-                    {event.start_time && (
-                      <div className="text-sm opacity-90">
-                        {new Date(event.start_time).toLocaleTimeString('en-US', { 
-                          hour: 'numeric', 
-                          minute: '2-digit' 
-                        })}
-                        {event.end_time && (
-                          <span>
-                            {' - '}
-                            {new Date(event.end_time).toLocaleTimeString('en-US', { 
-                              hour: 'numeric', 
-                              minute: '2-digit' 
-                            })}
-                          </span>
+            {(() => {
+              const selectedDateEvents = getEventsForDate(selectedDate);
+              const groupedSelectedEvents = groupOverlappingEvents(selectedDateEvents);
+              
+              return groupedSelectedEvents.map((group, groupIndex) => (
+                <div key={groupIndex} className="flex space-x-2">
+                  {group.map((event, eventIndex) => (
+                    <div
+                      key={event.id}
+                      className={`p-3 rounded-lg cursor-pointer text-white group transition-colors flex-1 min-w-0 ${
+                        userColors[event.provider] ? '' : getProviderColor(event.provider)
+                      }`}
+                      style={getProviderColorStyle(event.provider)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div 
+                          className="flex-1 min-w-0"
+                          onClick={() => onEventClick?.(event)}
+                        >
+                          <div className="font-medium truncate">{event.title}</div>
+                          {event.start_time && (
+                            <div className="text-sm opacity-90">
+                              {new Date(event.start_time).toLocaleTimeString('en-US', { 
+                                hour: 'numeric', 
+                                minute: '2-digit' 
+                              })}
+                              {event.end_time && (
+                                <span>
+                                  {' - '}
+                                  {new Date(event.end_time).toLocaleTimeString('en-US', { 
+                                    hour: 'numeric', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {event.location && (
+                            <div className="text-sm opacity-90 truncate">📍 {event.location}</div>
+                          )}
+                        </div>
+                        
+                        {onEventEdit && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleEditEvent(event);
+                            }}
+                            className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                            title="Edit event"
+                          >
+                            ✏️
+                          </button>
                         )}
                       </div>
-                    )}
-                    {event.location && (
-                      <div className="text-sm opacity-90">📍 {event.location}</div>
-                    )}
-                  </div>
-                  
-                  {onEventEdit && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleEditEvent(event);
-                      }}
-                      className="text-xs bg-blue-600 hover:bg-blue-700 px-2 py-1 rounded text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Edit event"
-                    >
-                      ✏️
-                    </button>
-                  )}
+                    </div>
+                  ))}
                 </div>
-              </div>
-            ))}
+              ));
+            })()}
             {getEventsForDate(selectedDate).length === 0 && (
               <div className="text-gray-500 text-center py-4">
                 {selectedCalendar ? (
