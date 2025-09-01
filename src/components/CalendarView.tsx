@@ -468,7 +468,7 @@ export default function CalendarView({
                   {group.map((event, eventIndex) => (
                     <div
                       key={event.id}
-                      className={`p-3 rounded-lg cursor-pointer text-white group w-1/2 min-w-0 ${
+                      className={`p-3 rounded-lg cursor-pointer text-white group flex-1 min-w-0 ${
                         userColors[event.provider] ? '' : getProviderColor(event.provider)
                       }`}
                       style={getProviderColorStyle(event.provider)}
@@ -772,7 +772,7 @@ export default function CalendarView({
                    {group.map((event, eventIndex) => (
                      <div
                        key={event.id}
-                       className={`p-3 rounded-lg cursor-pointer text-white group transition-colors w-1/2 min-w-0 ${
+                       className={`p-3 rounded-lg cursor-pointer text-white group transition-colors flex-1 min-w-0 ${
                          userColors[event.provider] ? '' : getProviderColor(event.provider)
                        }`}
                        style={getProviderColorStyle(event.provider)}
