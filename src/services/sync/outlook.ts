@@ -26,6 +26,8 @@ export async function fetchOutlookEvents(accessToken: string, startDate?: string
     const start = startDate || now.toISOString();
     const end = endDate || new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString(); // 30 days from now
 
+    console.log('Fetching Outlook events with date range:', { start, end });
+
     const response = await fetch(
       `https://graph.microsoft.com/v1.0/me/calendarView?startDateTime=${start}&endDateTime=${end}`,
       {
@@ -36,11 +38,29 @@ export async function fetchOutlookEvents(accessToken: string, startDate?: string
       }
     );
 
+    console.log('Outlook API response status:', response.status);
+
     if (!response.ok) {
-      throw new Error(`Failed to fetch Outlook events: ${response.statusText}`);
+      const errorText = await response.text();
+      console.error('Outlook API error:', {
+        status: response.status,
+        statusText: response.statusText,
+        body: errorText
+      });
+      throw new Error(`Failed to fetch Outlook events: ${response.statusText} - ${errorText}`);
     }
 
     const data = await response.json();
+    console.log('Outlook API response data:', {
+      hasValue: !!data.value,
+      valueLength: data.value?.length || 0,
+      firstEvent: data.value?.[0] ? {
+        id: data.value[0].id,
+        subject: data.value[0].subject,
+        start: data.value[0].start?.dateTime
+      } : null
+    });
+
     return data.value.map(normalizeOutlookEvent);
   } catch (error) {
     console.error('Error fetching Outlook events:', error);
@@ -49,7 +69,7 @@ export async function fetchOutlookEvents(accessToken: string, startDate?: string
 }
 
 export function normalizeOutlookEvent(event: OutlookEvent): UnifiedEvent {
-  return {
+  const normalized = {
     id: event.id,
     provider: 'azure-ad', // Changed from 'outlook' to 'azure-ad' to match the account provider
     title: event.subject || 'Untitled Event',
@@ -62,6 +82,15 @@ export function normalizeOutlookEvent(event: OutlookEvent): UnifiedEvent {
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
+
+  console.log('Normalized Outlook event:', {
+    id: normalized.id,
+    title: normalized.title,
+    start_time: normalized.start_time,
+    provider: normalized.provider
+  });
+
+  return normalized;
 }
 
 export async function createOutlookEvent(accessToken: string, event: Omit<UnifiedEvent, 'id' | 'provider' | 'created_at' | 'updated_at'>): Promise<UnifiedEvent> {
