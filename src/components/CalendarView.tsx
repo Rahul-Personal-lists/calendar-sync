@@ -290,8 +290,19 @@ export default function CalendarView({
         const groupEventEnd = new Date(groupEvent.end_time).getTime();
         
         // Check for overlap: events must actually overlap in time
-        // One event starts before the other ends AND one event ends after the other starts
-        return (eventStart < groupEventEnd && eventEnd > groupEventStart);
+        // For events to overlap, one must start before the other ends AND end after the other starts
+        // This means there must be actual time intersection, not just adjacency
+        const hasOverlap = (eventStart < groupEventEnd && eventEnd > groupEventStart);
+        
+        // Debug logging to see what's happening
+        if (hasOverlap) {
+          console.log('Overlap detected:', {
+            event1: { title: event.title, start: new Date(eventStart).toLocaleTimeString(), end: new Date(eventEnd).toLocaleTimeString() },
+            event2: { title: groupEvent.title, start: new Date(groupEventStart).toLocaleTimeString(), end: new Date(groupEventEnd).toLocaleTimeString() }
+          });
+        }
+        
+        return hasOverlap;
       });
       
       if (overlapsWithCurrentGroup) {
@@ -311,7 +322,42 @@ export default function CalendarView({
       groups.push(currentGroup);
     }
     
-    return groups;
+    // Now we need to merge groups that have overlapping events
+    const mergedGroups: UnifiedEvent[][] = [];
+    
+    for (const group of groups) {
+      let merged = false;
+      
+      for (let i = 0; i < mergedGroups.length; i++) {
+        const existingGroup = mergedGroups[i];
+        
+        // Check if any event in this group overlaps with any event in the existing group
+        const hasOverlap = group.some(event => {
+          const eventStart = new Date(event.start_time).getTime();
+          const eventEnd = new Date(event.end_time).getTime();
+          
+          return existingGroup.some(existingEvent => {
+            const existingStart = new Date(existingEvent.start_time).getTime();
+            const existingEnd = new Date(existingEvent.end_time).getTime();
+            
+            return (eventStart < existingEnd && eventEnd > existingStart);
+          });
+        });
+        
+        if (hasOverlap) {
+          // Merge the groups
+          mergedGroups[i] = [...existingGroup, ...group];
+          merged = true;
+          break;
+        }
+      }
+      
+      if (!merged) {
+        mergedGroups.push(group);
+      }
+    }
+    
+    return mergedGroups;
   };
 
   const handleEditEvent = (event: UnifiedEvent) => {
