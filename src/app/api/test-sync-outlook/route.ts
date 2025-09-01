@@ -3,6 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { fetchOutlookEvents } from '@/services/sync/outlook';
 import { getValidAccessToken } from '@/lib/token-refresh';
+import { UnifiedEvent } from '@/types/events';
 
 export async function GET(request: NextRequest) {
   let session;
@@ -55,7 +56,7 @@ export async function GET(request: NextRequest) {
     const nextWeekStart = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
     const nextWeekEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
     
-    let nextWeekSpecificEvents = [];
+    let nextWeekSpecificEvents: UnifiedEvent[] = [];
     try {
       nextWeekSpecificEvents = await fetchOutlookEvents(
         accessToken, 
